@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Ronda</string>
+
+    <string name="login_title">Ronda</string>
+    <string name="email_hint">Correo electrónico</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="otp_button">Ingresar con código OTP</string>
+</resources>
