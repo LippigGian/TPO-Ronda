@@ -11,6 +11,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+//Importo el intent para poder comunicarme con MainActivity. //
+import android.content.Intent;
+
+
 public class LoginActivity extends AppCompatActivity {
 
     @Override
@@ -44,6 +48,9 @@ public class LoginActivity extends AppCompatActivity {
                     "Datos ingresados correctamente",
                     Toast.LENGTH_SHORT
             ).show();
+            //Creo el intent:
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
         });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
