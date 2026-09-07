@@ -28,8 +28,19 @@ public class LoginActivity extends AppCompatActivity {
         EditText etEmail = findViewById(R.id.etEmail);
         EditText etPassword = findViewById(R.id.etPassword);
         Button btnLogin = findViewById(R.id.btnLogin);
+        Button btnOtp = findViewById(R.id.btnOtp);
 
-        //Logica listener
+        //Logica listener boton OTP
+        btnOtp.setOnClickListener(view ->{
+            Intent intent = new Intent(
+                    LoginActivity.this,
+                    SolicitarOtpActivity.class
+            );
+                    startActivity(intent);
+        });
+
+
+        //Logica listener boton login
         btnLogin.setOnClickListener(view -> {
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString();
