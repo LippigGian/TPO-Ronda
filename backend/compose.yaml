@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${DB_NAME:-ronda}
+      POSTGRES_USER: ${DB_USER:-ronda}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Completar DB_PASSWORD en backend/.env}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  backend:
+    build: .
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-ronda}
+      DB_USER: ${DB_USER:-ronda}
+      DB_PASSWORD: ${DB_PASSWORD:?Completar DB_PASSWORD en backend/.env}
+      SERVER_PORT: 8080
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  postgres_data:
