@@ -1,0 +1,39 @@
+name: Backend
+on:
+  pull_request:
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+  push:
+    branches: [main]
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: ronda_test
+          POSTGRES_USER: ronda_test
+          POSTGRES_PASSWORD: ci_test_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ronda_test -d ronda_test"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/ronda_test
+      DB_USER: ronda_test
+      DB_PASSWORD: ci_test_only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - run: mvn --batch-mode --no-transfer-progress -Pintegration verify
