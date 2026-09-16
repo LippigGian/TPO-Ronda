@@ -27,6 +27,15 @@ spring:
     enabled: true
     default-schema: ronda
     schemas: ronda
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}
 server:
   port: ${SERVER_PORT:8080}
 management:
@@ -37,3 +46,12 @@ management:
   endpoint:
     health:
       show-details: never
+app:
+  otp:
+    expiration-seconds: ${OTP_EXPIRATION_SECONDS:600}
+    sender: ${OTP_SENDER:no-reply@ronda.local}
+  security:
+    jwt:
+      # Solo desarrollo. En entornos compartidos definir JWT_SECRET (minimo 32 bytes).
+      secret: ${JWT_SECRET:local-ronda-jwt-secret-change-me-32bytes}
+      expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}

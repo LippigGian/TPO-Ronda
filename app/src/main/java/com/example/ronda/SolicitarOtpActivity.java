@@ -12,9 +12,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import android.content.Intent;
+import android.util.Log;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SolicitarOtpActivity extends AppCompatActivity {
 
+    /** Executor para trabajar en hilo secundario **/
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,25 +41,50 @@ public class SolicitarOtpActivity extends AppCompatActivity {
                 etEmailOtp.setError("Ingresá un correo electrónico válido");
                 return;
             }
-            Toast.makeText(
-                    SolicitarOtpActivity.this,
-                    "Código de prueba: 123456",
-                    Toast.LENGTH_LONG
-            ).show();
-            Intent intent = new Intent(
-                    SolicitarOtpActivity.this,
-                    ValidarOtpActivity.class
-            );
+            btnEnviarOtp.setEnabled(false);
 
-            intent.putExtra("EMAIL", email);
+            executor.execute(() -> {
+                try {
+                    ApiClient.OtpRequestResult result =
+                            ApiClient.requestLoginOtp(email);
 
-            startActivity(intent);
+                    runOnUiThread(() -> {
+                        btnEnviarOtp.setEnabled(true);
 
-/*            Toast.makeText(
-                    SolicitarOtpActivity.this,
-                    "Código enviado a " + email,
-                    Toast.LENGTH_SHORT
-            ).show();*/
+                        if (result.statusCode() == 202) {
+                            Intent intent = new Intent(
+                                    SolicitarOtpActivity.this,
+                                    ValidarOtpActivity.class
+                            );
+
+                            intent.putExtra("EMAIL", email);
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(
+                                    SolicitarOtpActivity.this,
+                                    result.message(),
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        }
+                    });
+                } catch (Exception error) {
+                    Log.e(
+                            "SolicitarOtpActivity",
+                            "Error al solicitar OTP",
+                            error
+                    );
+
+                    runOnUiThread(() -> {
+                        btnEnviarOtp.setEnabled(true);
+
+                        Toast.makeText(
+                                SolicitarOtpActivity.this,
+                                "No se pudo solicitar el código",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    });
+                }
+            });
         });
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -62,5 +92,14 @@ public class SolicitarOtpActivity extends AppCompatActivity {
             return insets;
         });
 
+    }
+
+    /** este onDestroy sirve para detener el ExecutorService en caso de que el usuario
+     * salga de la pantalla en medio de la peticion
+     */
+    @Override
+    protected void onDestroy() {
+        executor.shutdownNow();
+        super.onDestroy();
     }
 }
