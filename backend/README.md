@@ -94,6 +94,7 @@ Flyway creara el esquema `ronda` automaticamente.
 | `DB_PORT` | `5432`, puerto local de PostgreSQL |
 | `DB_URL` | Opcional; reemplaza la URL JDBC completa para Spring |
 | `SERVER_PORT` | `8080`, puerto HTTP |
+| `JWT_EXPIRATION_SECONDS` | `3600`, duración de la sesión JWT en segundos |
 
 Ejemplo de `DB_URL`: `jdbc:postgresql://localhost:5432/ronda`.
 En Compose, el backend usa el nombre de servicio `db` y el puerto interno 5432;

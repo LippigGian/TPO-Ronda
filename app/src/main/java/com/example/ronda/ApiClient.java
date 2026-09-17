@@ -1,205 +1,94 @@
 package com.example.ronda;
 
-import org.json.JSONObject;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.io.IOException;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public final class ApiClient {
-    private static final String BASE_URL = "http://127.0.0.1:8080";
+    private static final String BASE_URL = "http://127.0.0.1:8080/";
+
+    /** Preparo Retrofti para utilizar la ainterfaz RondaApi **/
+    private static final RondaApi API = new Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(RondaApi.class);
 
     private ApiClient() { }
-    /** Declaracion de clase intera **/
-    public static final class LoginResult {
-        private final int statusCode;
-        private final String token;
-        private final String message;
 
-        public LoginResult(int statusCode, String token, String message) {
-            this.statusCode = statusCode;
-            this.token = token;
-            this.message = message;
-        }
-
-        public int statusCode() {
-            return statusCode;
-        }
-
-        public String token() {
-            return token;
-        }
-
-        public String message() {
-            return message;
-        }
-    }
-    /** Login por mail y contraseña**/
-    public static LoginResult login(String email, String password) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL(BASE_URL + "/api/v1/auth/login").openConnection();
-        /** Configuraciones de la peticion **/
-        connection.setRequestMethod("POST");
-        connection.setConnectTimeout(8000);
-        connection.setReadTimeout(8000);
-        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        connection.setDoOutput(true);
-        /**Arma el cuerpo JSON de la peticion **/
-        byte[] body = new JSONObject().put("email", email).put("password", password)
-                .toString().getBytes(StandardCharsets.UTF_8);
-        /** Luego se envia al servidor **/
-        try (OutputStream output = connection.getOutputStream()) { output.write(body); }
-        /** Codigo de la respuesta (400, 401, 404, etc) **/
-        int status = connection.getResponseCode();
-
-        var stream = status >= 400 ? connection.getErrorStream() : connection.getInputStream();
-        /** Aqui se convierte el contenido de la respuesta recibida en texto**/
-        String response = stream == null ? "" : readResponse(stream);
-        String token = null;
-        String message = "No se pudo iniciar sesion";
-        if (!response.trim().isEmpty()) {
-            JSONObject json = new JSONObject(response);
-            token = json.optString("token", null);
-            message = json.optString("detail", json.optString("message", message));
-        }
-        connection.disconnect();
-        /** Finalmente devuelve la respuesta al LoginActivity.java**/
-
-        return new LoginResult(status, token, message);
+    public static RondaApi api() {
+        return API;
     }
 
-
-    /** Declaracion de clase intera **/
-    public static final class OtpRequestResult {
-        private final int statusCode;
-        private final String message;
-
-        public OtpRequestResult(int statusCode, String message) {
-            this.statusCode = statusCode;
-            this.message = message;
+    public static String errorMessage(Response<?> response, String fallback) {
+        if (response.errorBody() == null) {
+            return fallback;
         }
 
-        public int statusCode() {
-            return statusCode;
-        }
-
-        public String message() {
-            return message;
-        }
-    }
-
-    /** Login via OTP **/
-    public static OtpRequestResult requestLoginOtp(String email) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL(
-                BASE_URL + "/api/v1/auth/otp/request"
-        ).openConnection();
-
-        connection.setRequestMethod("POST");
-        connection.setConnectTimeout(8000);
-        connection.setReadTimeout(8000);
-        connection.setRequestProperty(
-                "Content-Type",
-                "application/json; charset=UTF-8"
-        );
-        connection.setDoOutput(true);
-
-        byte[] body = new JSONObject()
-                .put("email", email)
-                .put("purpose", "LOGIN")
-                .toString()
-                .getBytes(StandardCharsets.UTF_8);
-
-        try (OutputStream output = connection.getOutputStream()) {
-            output.write(body);
-        }
-
-        int status = connection.getResponseCode();
-        InputStream stream = status >= 400
-                ? connection.getErrorStream()
-                : connection.getInputStream();
-
-        String response = stream == null ? "" : readResponse(stream);
-        String message = status == 202
-                ? "Código enviado"
-                : "No se pudo enviar el código";
-
-        if (!response.trim().isEmpty()) {
-            JSONObject json = new JSONObject(response);
-            message = json.optString(
-                    "detail",
-                    json.optString("message", message)
-            );
-        }
-
-        connection.disconnect();
-        return new OtpRequestResult(status, message);
-    }
-
-    /**Metodo para validar el codigo **/
-    public static LoginResult verifyLoginOtp(
-            String email,
-            String code
-    ) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL(
-                BASE_URL + "/api/v1/auth/otp/verify"
-        ).openConnection();
-
-        connection.setRequestMethod("POST");
-        connection.setConnectTimeout(8000);
-        connection.setReadTimeout(8000);
-        connection.setRequestProperty(
-                "Content-Type",
-                "application/json; charset=UTF-8"
-        );
-        connection.setDoOutput(true);
-
-        byte[] body = new JSONObject()
-                .put("email", email)
-                .put("purpose", "LOGIN")
-                .put("code", code)
-                .toString()
-                .getBytes(StandardCharsets.UTF_8);
-
-        try (OutputStream output = connection.getOutputStream()) {
-            output.write(body);
-        }
-
-        int status = connection.getResponseCode();
-        InputStream stream = status >= 400
-                ? connection.getErrorStream()
-                : connection.getInputStream();
-
-        String response = stream == null ? "" : readResponse(stream);
-        String token = null;
-        String message = "No se pudo validar el código";
-
-        if (!response.trim().isEmpty()) {
-            JSONObject json = new JSONObject(response);
-            token = json.optString("token", null);
-            message = json.optString(
-                    "detail",
-                    json.optString("message", message)
-            );
-        }
-
-        connection.disconnect();
-        return new LoginResult(status, token, message);
-    }
-
-    private static String readResponse(InputStream stream) throws Exception {
-        StringBuilder result = new StringBuilder();
-
-        try (BufferedReader reader =
-                     new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                result.append(line);
+        try {
+            JsonObject error = JsonParser.parseString(response.errorBody().string()).getAsJsonObject();
+            if (error.has("detail")) {
+                return error.get("detail").getAsString();
             }
+            if (error.has("message")) {
+                return error.get("message").getAsString();
+            }
+        } catch (IOException | IllegalStateException ignored) {
+            // Si la respuesta no contiene JSON, se muestra el mensaje de respaldo.
         }
+        return fallback;
+    }
 
-        return result.toString();
+    public static final class LoginRequest {
+        private final String email;
+        private final String password;
+
+        public LoginRequest(String email, String password) {
+            this.email = email;
+            this.password = password;
+        }
+    }
+
+    public static final class OtpRequest {
+        private final String email;
+        private final String purpose;
+
+        public OtpRequest(String email, String purpose) {
+            this.email = email;
+            this.purpose = purpose;
+        }
+    }
+
+    public static final class OtpVerifyRequest {
+        private final String email;
+        private final String purpose;
+        private final String code;
+
+        public OtpVerifyRequest(String email, String purpose, String code) {
+            this.email = email;
+            this.purpose = purpose;
+            this.code = code;
+        }
+    }
+
+    public static final class LoginResponse {
+        private String token;
+        private String tokenType;
+        private long expiresIn;
+
+        public String getToken() { return token; }
+        public String getTokenType() { return tokenType; }
+        public long getExpiresIn() { return expiresIn; }
+    }
+
+    public static final class OtpRequestResponse {
+        private String message;
+        private long expiresInSeconds;
+
+        public String getMessage() { return message; }
+        public long getExpiresInSeconds() { return expiresInSeconds; }
     }
 }

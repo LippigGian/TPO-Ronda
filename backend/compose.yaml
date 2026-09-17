@@ -23,6 +23,7 @@ services:
       SERVER_PORT: 8080
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
+      JWT_EXPIRATION_SECONDS: ${JWT_EXPIRATION_SECONDS:-3600}
     ports:
       - "${SERVER_PORT:-8080}:8080"
     depends_on:
