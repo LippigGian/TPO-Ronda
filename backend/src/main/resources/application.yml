@@ -39,6 +39,9 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 management:
+  health:
+    mail:
+      enabled: false
   endpoints:
     web:
       exposure:
