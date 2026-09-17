@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.google.android.material.textfield.TextInputLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,6 +25,7 @@ public class SolicitarOtpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_solicitar_otp);
 
         EditText etEmailOtp = findViewById(R.id.etEmailOtp);
+        TextInputLayout tilEmailOtp = findViewById(R.id.tilEmailOtp);
         Button btnEnviarOtp = findViewById(R.id.btnEnviarOtp);
         /** Recibo y leo el intent enviado desde LoginActivity **/
         String purposeReceived = getIntent().getStringExtra("OTP_PURPOSE");
@@ -34,13 +36,14 @@ public class SolicitarOtpActivity extends AppCompatActivity {
         btnEnviarOtp.setOnClickListener(view -> {
             String email = etEmailOtp.getText().toString().trim();
             if (email.isEmpty()) {
-                etEmailOtp.setError("Ingresá tu correo electrónico");
+                tilEmailOtp.setError("Ingresá tu correo electrónico");
                 return;
             }
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                etEmailOtp.setError("Ingresá un correo electrónico válido");
+                tilEmailOtp.setError("Ingresá un correo electrónico válido");
                 return;
             }
+            tilEmailOtp.setError(null);
 
             btnEnviarOtp.setEnabled(false);
 
@@ -65,11 +68,7 @@ public class SolicitarOtpActivity extends AppCompatActivity {
                                     ? "No existe una cuenta con ese email"
                                     : ApiClient.errorMessage(response, "No se pudo solicitar el código");
 
-                            Toast.makeText(
-                                    SolicitarOtpActivity.this,
-                                    message,
-                                    Toast.LENGTH_LONG
-                            ).show();
+                            tilEmailOtp.setError(message);
                         }
 
                         @Override

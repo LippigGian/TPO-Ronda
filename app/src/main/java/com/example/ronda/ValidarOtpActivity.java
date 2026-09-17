@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.google.android.material.textfield.TextInputLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,6 +25,7 @@ public class ValidarOtpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_validar_otp);
 
         EditText etCodigoOtp = findViewById(R.id.etCodigoOtp);
+        TextInputLayout tilCodigoOtp = findViewById(R.id.tilCodigoOtp);
         Button btnConfirmarOtp = findViewById(R.id.btnConfirmarOtp);
         Button btnReenviarOtp = findViewById(R.id.btnReenviarOtp);
         TextView tvOtpEmail = findViewById(R.id.tvOtpEmail);
@@ -105,9 +107,10 @@ public class ValidarOtpActivity extends AppCompatActivity {
         btnConfirmarOtp.setOnClickListener(view -> {
             String code = etCodigoOtp.getText().toString().trim();
             if (!code.matches("\\d{6}")) {
-                etCodigoOtp.setError("El código debe tener 6 dígitos");
+                tilCodigoOtp.setError("El código debe tener 6 dígitos");
                 return;
             }
+            tilCodigoOtp.setError(null);
 
             btnConfirmarOtp.setEnabled(false);
             ApiClient.api().verifyOtp(new ApiClient.OtpVerifyRequest(email, otpPurpose, code))
@@ -125,7 +128,7 @@ public class ValidarOtpActivity extends AppCompatActivity {
                                 return;
                             }
 
-                            etCodigoOtp.setError(
+                            tilCodigoOtp.setError(
                                     ApiClient.errorMessage(response, "No se pudo validar el código")
                             );
                         }
