@@ -25,6 +25,11 @@ public class SolicitarOtpActivity extends AppCompatActivity {
 
         EditText etEmailOtp = findViewById(R.id.etEmailOtp);
         Button btnEnviarOtp = findViewById(R.id.btnEnviarOtp);
+        /** Recibo y leo el intent enviado desde LoginActivity **/
+        String purposeReceived = getIntent().getStringExtra("OTP_PURPOSE");
+        /** Si recibe purposeReceived utiliza ese, si es NULL utiliza login **/
+        final String otpPurpose = purposeReceived == null ? "LOGIN" : purposeReceived;
+
 
         btnEnviarOtp.setOnClickListener(view -> {
             String email = etEmailOtp.getText().toString().trim();
@@ -38,7 +43,8 @@ public class SolicitarOtpActivity extends AppCompatActivity {
             }
 
             btnEnviarOtp.setEnabled(false);
-            ApiClient.api().requestOtp(new ApiClient.OtpRequest(email, "LOGIN"))
+
+            ApiClient.api().requestOtp(new ApiClient.OtpRequest(email, otpPurpose))
                     .enqueue(new Callback<ApiClient.OtpRequestResponse>() {
                         @Override
                         public void onResponse(Call<ApiClient.OtpRequestResponse> call,
@@ -50,13 +56,20 @@ public class SolicitarOtpActivity extends AppCompatActivity {
                                         ValidarOtpActivity.class
                                 );
                                 intent.putExtra("EMAIL", email);
+                                intent.putExtra("OTP_PURPOSE", otpPurpose);
                                 startActivity(intent);
                                 return;
                             }
 
-                            Toast.makeText(SolicitarOtpActivity.this,
-                                    ApiClient.errorMessage(response, "No se pudo solicitar el código"),
-                                    Toast.LENGTH_LONG).show();
+                            String message = response.code() == 404
+                                    ? "No existe una cuenta con ese email"
+                                    : ApiClient.errorMessage(response, "No se pudo solicitar el código");
+
+                            Toast.makeText(
+                                    SolicitarOtpActivity.this,
+                                    message,
+                                    Toast.LENGTH_LONG
+                            ).show();
                         }
 
                         @Override

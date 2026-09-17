@@ -26,11 +26,13 @@ public class LoginActivity extends AppCompatActivity {
         EditText etPassword = findViewById(R.id.etPassword);
         Button btnLogin = findViewById(R.id.btnLogin);
         Button btnOtp = findViewById(R.id.btnOtp);
+        Button btnRecuperarAcceso = findViewById(R.id.btnRecuperarAcceso);
 
+        /** Listener para boton OTP **/
         btnOtp.setOnClickListener(view -> startActivity(
                 new Intent(LoginActivity.this, SolicitarOtpActivity.class)
         ));
-
+        /** Listener para boton LOGIN **/
         btnLogin.setOnClickListener(view -> {
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString();
@@ -75,6 +77,12 @@ public class LoginActivity extends AppCompatActivity {
                                     "No se pudo conectar con el servidor", Toast.LENGTH_LONG).show();
                         }
                     });
+        });
+        /** Listener para boton recuperar OTP **/
+        btnRecuperarAcceso.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, SolicitarOtpActivity.class);
+            intent.putExtra("OTP_PURPOSE", "RECUPERO_CONTRASENA");
+            startActivity(intent);
         });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {

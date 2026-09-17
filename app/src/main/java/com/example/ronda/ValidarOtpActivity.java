@@ -29,6 +29,8 @@ public class ValidarOtpActivity extends AppCompatActivity {
         TextView tvOtpEmail = findViewById(R.id.tvOtpEmail);
 
         String email = getIntent().getStringExtra("EMAIL");
+        String purposeReceived = getIntent().getStringExtra("OTP_PURPOSE");
+        final String otpPurpose = purposeReceived == null ? "LOGIN" : purposeReceived;
 
         if (email == null) {
             finish();
@@ -44,7 +46,7 @@ public class ValidarOtpActivity extends AppCompatActivity {
                     .resendOtp(
                             new ApiClient.OtpRequest(
                                     email,
-                                    "LOGIN"
+                                    otpPurpose
                             )
                     )
                     .enqueue(
@@ -108,7 +110,7 @@ public class ValidarOtpActivity extends AppCompatActivity {
             }
 
             btnConfirmarOtp.setEnabled(false);
-            ApiClient.api().verifyOtp(new ApiClient.OtpVerifyRequest(email, "LOGIN", code))
+            ApiClient.api().verifyOtp(new ApiClient.OtpVerifyRequest(email, otpPurpose, code))
                     .enqueue(new Callback<ApiClient.LoginResponse>() {
                         @Override
                         public void onResponse(Call<ApiClient.LoginResponse> call,
