@@ -30,7 +30,7 @@ public class AuthService implements UserDetailsService {
         if (usuarios.existsByEmailIgnoreCase(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El email ya esta registrado");
         }
-        Usuario user = usuarios.save(new Usuario(email, passwordEncoder.encode(request.password()), request.username().trim()));
+        Usuario user = usuarios.save(new Usuario(email, passwordEncoder.encode(request.password()), email));
         otpService.sendCode(user, OtpPurpose.REGISTRO);
         return user;
     }

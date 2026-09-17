@@ -30,6 +30,8 @@ public class LoginActivity extends AppCompatActivity {
         Button btnLogin = findViewById(R.id.btnLogin);
         Button btnOtp = findViewById(R.id.btnOtp);
         Button btnRecuperarAcceso = findViewById(R.id.btnRecuperarAcceso);
+        Button btnCrearCuenta = findViewById(R.id.btnCrearCuenta);
+
 
         /** Listener para boton OTP **/
         btnOtp.setOnClickListener(view -> startActivity(
@@ -92,6 +94,10 @@ public class LoginActivity extends AppCompatActivity {
             intent.putExtra("OTP_PURPOSE", "RECUPERO_CONTRASENA");
             startActivity(intent);
         });
+        /**Listener para crear cuenta **/
+        btnCrearCuenta.setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, RegistroActivity.class))
+        );
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());

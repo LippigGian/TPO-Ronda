@@ -10,6 +10,9 @@ public interface RondaApi {
     @POST("api/v1/auth/login")
     Call<ApiClient.LoginResponse> login(@Body ApiClient.LoginRequest request);
 
+    @POST("api/v1/auth/register")
+    Call<Void> register(@Body ApiClient.RegisterRequest request);
+
     @POST("api/v1/auth/otp/request")
     Call<ApiClient.OtpRequestResponse> requestOtp(@Body ApiClient.OtpRequest request);
 

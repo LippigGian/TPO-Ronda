@@ -8,4 +8,6 @@
     <string name="login_button">Ingresar con contraseña</string>
     <string name="otp_button">Ingresar con código OTP</string>
     <string name="recover_access_button">Recuperar acceso</string>
+    <string name="create_account_button">¿No tenés cuenta? Crear cuenta</string>
+
 </resources>

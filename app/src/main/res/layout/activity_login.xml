@@ -109,6 +109,17 @@
                 android:textSize="15sp"
                 app:cornerRadius="14dp"
                 app:strokeColor="@color/ronda_outline" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCrearCuenta"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:backgroundTint="@android:color/transparent"
+                android:text="@string/create_account_button"
+                android:textAllCaps="false"
+                android:textColor="@color/ronda_primary"
+                android:textSize="15sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

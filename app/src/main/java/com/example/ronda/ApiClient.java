@@ -41,12 +41,22 @@ public final class ApiClient {
         }
         return fallback;
     }
-
+    /** Request para login **/
     public static final class LoginRequest {
         private final String email;
         private final String password;
 
         public LoginRequest(String email, String password) {
+            this.email = email;
+            this.password = password;
+        }
+    }
+    /** Request para registrarse **/
+    public static final class RegisterRequest {
+        private final String email;
+        private final String password;
+
+        public RegisterRequest(String email, String password) {
             this.email = email;
             this.password = password;
         }
