@@ -2,8 +2,12 @@
     <string name="app_name">Ronda</string>
 
     <string name="login_title">Ronda</string>
+    <string name="login_subtitle">Comprá, vendé y encontrá lo que buscás.</string>
     <string name="email_hint">Correo electrónico</string>
     <string name="password_hint">Contraseña</string>
-    <string name="login_button">Iniciar sesión</string>
+    <string name="login_button">Ingresar con contraseña</string>
     <string name="otp_button">Ingresar con código OTP</string>
+    <string name="recover_access_button">Recuperar acceso</string>
+    <string name="create_account_button">¿No tenés cuenta? Crear cuenta</string>
+
 </resources>

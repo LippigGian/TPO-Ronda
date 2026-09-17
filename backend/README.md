@@ -12,8 +12,12 @@ Android sigue en `app/` y conserva su compilacion Gradle independiente.
 - `GET /actuator/health`: comprueba tambien PostgreSQL; devuelve 503 si no esta saludable.
 - El resto de las rutas devuelve 403 hasta que cada feature defina sus permisos.
 
-Registro, login, OTP, envio SMTP y sesiones se implementaran en la rama de autenticacion.
-No hay usuarios, contrasenas generadas ni endpoints de negocio de prueba.
+Registro y login por contraseña entregan sesiones JWT. El registro deja la cuenta sin verificar y envia un OTP.
+`POST /api/v1/auth/otp/request` solicita un código para `LOGIN`, `REGISTRO` o `RECUPERO_CONTRASENA`.
+`POST /api/v1/auth/otp/resend` genera y envía un código nuevo e invalida el anterior pendiente.
+`POST /api/v1/auth/otp/verify` valida el código y crea la sesión JWT. Los códigos vencen a los 10 minutos,
+se almacenan como hash y admiten hasta cinco intentos fallidos.
+Docker Compose incluye Mailpit para desarrollo: los emails se pueden ver en `http://localhost:8025`.
 
 ## Opcion A: ejecutar todo con Docker Desktop
 
@@ -31,6 +35,8 @@ Completar `DB_PASSWORD` con una contrasena local de letras y numeros, guardar y 
 docker compose up --build -d
 docker compose logs -f backend
 ```
+
+Cuando se solicite un OTP, abrir `http://localhost:8025` para leer el email de prueba en Mailpit.
 
 Compose lee `.env` automaticamente. La base queda en un volumen persistente y el backend
 espera a que PostgreSQL este disponible. No hace falta instalar Java o Maven con esta opcion.
@@ -88,6 +94,7 @@ Flyway creara el esquema `ronda` automaticamente.
 | `DB_PORT` | `5432`, puerto local de PostgreSQL |
 | `DB_URL` | Opcional; reemplaza la URL JDBC completa para Spring |
 | `SERVER_PORT` | `8080`, puerto HTTP |
+| `JWT_EXPIRATION_SECONDS` | `3600`, duración de la sesión JWT en segundos |
 
 Ejemplo de `DB_URL`: `jdbc:postgresql://localhost:5432/ronda`.
 En Compose, el backend usa el nombre de servicio `db` y el puerto interno 5432;
@@ -145,4 +152,5 @@ no reemplazar `ddl-auto: validate` por `update` para ocultar el problema.
 El Dockerfile permite ejecutar el backend con Java 21 sin instalar Maven en el servidor.
 Se necesitan una base persistente, variables de entorno y HTTPS en el servicio de hosting.
 El Compose incluido es para desarrollo local. `.env` queda excluido de Git y del contexto Docker.
-El servicio SMTP y sus credenciales se configuraran junto con la funcionalidad de OTP.
+Para producción, reemplazar Mailpit por un proveedor SMTP real mediante `MAIL_HOST`, `MAIL_PORT`,
+`MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS` y las credenciales correspondientes.

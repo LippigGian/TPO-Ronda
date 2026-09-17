@@ -2,4 +2,12 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="ronda_primary">#0F766E</color>
+    <color name="ronda_primary_dark">#115E59</color>
+    <color name="ronda_background">#F4F7F6</color>
+    <color name="ronda_surface">#FFFFFFFF</color>
+    <color name="ronda_text_primary">#173B38</color>
+    <color name="ronda_text_secondary">#647572</color>
+    <color name="ronda_outline">#B7C8C4</color>
+    <color name="ronda_success">#16803C</color>
 </resources>

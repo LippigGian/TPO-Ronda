@@ -21,10 +21,19 @@ services:
       DB_USER: ${DB_USER:-ronda}
       DB_PASSWORD: ${DB_PASSWORD:?Completar DB_PASSWORD en backend/.env}
       SERVER_PORT: 8080
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      JWT_EXPIRATION_SECONDS: ${JWT_EXPIRATION_SECONDS:-3600}
     ports:
       - "${SERVER_PORT:-8080}:8080"
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:${MAILPIT_WEB_PORT:-8025}:8025"
 volumes:
   postgres_data:
