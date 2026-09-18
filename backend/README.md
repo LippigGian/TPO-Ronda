@@ -19,6 +19,22 @@ Registro y login por contraseña entregan sesiones JWT. El registro deja la cuen
 se almacenan como hash y admiten hasta cinco intentos fallidos.
 Docker Compose incluye Mailpit para desarrollo: los emails se pueden ver en `http://localhost:8025`.
 
+## Publicaciones
+
+Las rutas de publicaciones requieren un JWT válido, excepto la lectura de archivos bajo `/uploads/**`.
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| `POST` | `/api/v1/publicaciones` | Crea una publicación para el usuario autenticado. |
+| `GET` | `/api/v1/publicaciones/mias` | Lista las publicaciones propias, incluidas pausadas o vendidas. |
+| `PATCH` | `/api/v1/publicaciones/{id}/estado` | Cambia el estado a `ACTIVA`, `PAUSADA` o `VENDIDA`. |
+| `POST` | `/api/v1/publicaciones/{id}/fotos` | Carga de 1 a 5 fotos con `multipart/form-data`, usando la clave `fotos`. |
+
+Al crear una publicación se envían `titulo`, `descripcion`, `categoria`, `precio`,
+`estadoArticulo` (`NUEVO`, `COMO_NUEVO` o `USADO`), `direccion`, `latitud` y `longitud`.
+Las fotos se conservan en el volumen Docker `uploads_data`, por lo que no se pierden al reiniciar
+los contenedores.
+
 ## Opcion A: ejecutar todo con Docker Desktop
 
 Instalar Docker Desktop y usar contenedores Linux. Desde la raiz del repositorio:

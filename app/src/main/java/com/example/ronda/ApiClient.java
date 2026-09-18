@@ -6,21 +6,63 @@ import java.io.IOException;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import android.content.Context;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import java.util.List;
+
 
 public final class ApiClient {
     private static final String BASE_URL = "http://127.0.0.1:8080/";
 
     /** Preparo Retrofti para utilizar la ainterfaz RondaApi **/
-    private static final RondaApi API = new Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(RondaApi.class);
+    private static RondaApi api;
+    private static SessionManager sessionManager;
 
     private ApiClient() { }
 
+    public static void initialize(Context context) {
+        if (api != null) {
+            return;
+        }
+
+        sessionManager = new SessionManager(context);
+/** Interceptor para agregar el token a cada request que pase por ApiClient **/
+        OkHttpClient httpClient = new OkHttpClient.Builder()
+                .addInterceptor(chain -> {
+                    Request request = chain.request();
+                    String token = sessionManager.getToken();
+
+                    if (token == null) {
+                        return chain.proceed(request);
+                    }
+
+                    Request authenticatedRequest = request.newBuilder()
+                            .header("Authorization", "Bearer " + token)
+                            .build();
+
+                    return chain.proceed(authenticatedRequest);
+                })
+                .build();
+
+        api = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(httpClient)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(RondaApi.class);
+    }
+
     public static RondaApi api() {
-        return API;
+        if (api == null) {
+            throw new IllegalStateException("ApiClient no fue inicializado");
+        }
+
+        return api;
+    }
+
+    public static String imageUrl(String path) {
+        return BASE_URL + path.replaceFirst("^/", "");
     }
 
     public static String errorMessage(Response<?> response, String fallback) {
@@ -101,4 +143,101 @@ public final class ApiClient {
         public String getMessage() { return message; }
         public long getExpiresInSeconds() { return expiresInSeconds; }
     }
+    public static final class CreatePublicacionRequest {
+        private final String titulo;
+        private final String descripcion;
+        private final String categoria;
+        private final double precio;
+        private final String estadoArticulo;
+        private final String direccion;
+        private final double latitud;
+        private final double longitud;
+
+        public CreatePublicacionRequest(
+                String titulo,
+                String descripcion,
+                String categoria,
+                double precio,
+                String estadoArticulo,
+                String direccion,
+                double latitud,
+                double longitud
+        ) {
+            this.titulo = titulo;
+            this.descripcion = descripcion;
+            this.categoria = categoria;
+            this.precio = precio;
+            this.estadoArticulo = estadoArticulo;
+            this.direccion = direccion;
+            this.latitud = latitud;
+            this.longitud = longitud;
+        }
+    }
+
+    public static final class ChangePublicacionStatusRequest {
+        private final String estado;
+
+        public ChangePublicacionStatusRequest(String estado) {
+            this.estado = estado;
+        }
+    }
+
+    public static final class PublicacionResponse {
+        private long id;
+        private String titulo;
+        private String descripcion;
+        private String categoria;
+        private double precio;
+        private String estadoArticulo;
+        private String estadoPublicacion;
+        private String direccion;
+        private double latitud;
+        private double longitud;
+        private List<String> fotos;
+
+        public long getId() {
+            return id;
+        }
+
+        public String getTitulo() {
+            return titulo;
+        }
+
+        public String getDescripcion() {
+            return descripcion;
+        }
+
+        public String getCategoria() {
+            return categoria;
+        }
+
+        public double getPrecio() {
+            return precio;
+        }
+
+        public String getEstadoArticulo() {
+            return estadoArticulo;
+        }
+
+        public String getEstadoPublicacion() {
+            return estadoPublicacion;
+        }
+
+        public String getDireccion() {
+            return direccion;
+        }
+
+        public double getLatitud() {
+            return latitud;
+        }
+
+        public double getLongitud() {
+            return longitud;
+        }
+
+        public List<String> getFotos() {
+            return fotos;
+        }
+    }
+
 }

@@ -7,9 +7,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import com.example.ronda.model.Publicacion;
-
-import android.widget.TextView;
+import android.content.Intent;
+import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,25 +17,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        //Prueba de creacion de objeto Publicacion
-        Publicacion publicacion = new Publicacion(
-                "Bicicleta mountain bike",
-                250000,
-                "Usado",
-                "Palermo"
+        /** Botones de las publicaciones **/
+        Button btnIrAPublicarArticulo = findViewById(R.id.btnIrAPublicarArticulo);
+        Button btnIrAMisPublicaciones = findViewById(R.id.btnIrAMisPublicaciones);
+
+
+        /** Listeners de publicaciones **/
+        btnIrAPublicarArticulo.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, PublicarArticuloActivity.class))
         );
-//       Buscar los datos del componente:
 
-        TextView tvTitulo = findViewById(R.id.tvTituloPublicacion);
-        TextView tvPrecio = findViewById(R.id.tvPrecioPublicacion);
-        TextView tvEstado = findViewById(R.id.tvEstadoPublicacion);
-        TextView tvZona = findViewById(R.id.tvZonaPublicacion);
-//      Mostrar los datos:
-        tvTitulo.setText(publicacion.getTitulo());
-        tvPrecio.setText("$ " + publicacion.getPrecio());
-        tvEstado.setText("Estado: " + publicacion.getEstado());
-        tvZona.setText("Zona: " + publicacion.getZona());
-
+        btnIrAMisPublicaciones.setOnClickListener(view ->
+                startActivity(
+                        new Intent(MainActivity.this, MisPublicacionesActivity.class)
+                )
+        );
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());

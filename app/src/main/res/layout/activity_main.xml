@@ -24,6 +24,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
+        android:id="@+id/tvSesionIniciada"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -37,77 +38,53 @@
         app:layout_constraintTop_toBottomOf="@id/tvBienvenida" />
 
     <TextView
-        android:id="@+id/tvPublicacionesLabel"
+        android:id="@+id/tvAcciones"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="40dp"
         android:layout_marginEnd="24dp"
-        android:text="Publicaciones destacadas"
+        android:text="¿Qué querés hacer?"
         android:textColor="@color/ronda_text_primary"
-        android:textSize="18sp"
+        android:textSize="19sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvBienvenida" />
+        app:layout_constraintTop_toBottomOf="@id/tvSesionIniciada" />
 
-    <com.google.android.material.card.MaterialCardView
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnIrAPublicarArticulo"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="18dp"
         android:layout_marginEnd="24dp"
-        app:cardBackgroundColor="@color/ronda_surface"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="2dp"
+        android:backgroundTint="@color/ronda_primary"
+        android:text="Publicar un artículo"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        app:cornerRadius="14dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvPublicacionesLabel">
+        app:layout_constraintTop_toBottomOf="@id/tvAcciones" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
-
-            <TextView
-                android:id="@+id/tvTituloPublicacion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Título de ejemplo"
-                android:textColor="@color/ronda_text_primary"
-                android:textSize="21sp"
-                android:textStyle="bold" />
-
-            <!--Textos como "titulo ejemplo o $0 son de previsualizacion, luego en java los reemplazamos por los valores reales-->
-            <TextView
-                android:id="@+id/tvPrecioPublicacion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="$ 0"
-                android:textColor="@color/ronda_primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvEstadoPublicacion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="Estado"
-                android:textColor="@color/ronda_text_secondary"
-                android:textSize="15sp" />
-
-            <TextView
-                android:id="@+id/tvZonaPublicacion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="Zona"
-                android:textColor="@color/ronda_text_secondary"
-                android:textSize="15sp" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnIrAMisPublicaciones"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="24dp"
+        android:backgroundTint="@android:color/transparent"
+        android:text="Mis publicaciones"
+        android:textAllCaps="false"
+        android:textColor="@color/ronda_primary"
+        android:textSize="16sp"
+        app:cornerRadius="14dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnIrAPublicarArticulo"
+        app:strokeColor="@color/ronda_outline" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
