@@ -4,17 +4,20 @@ import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.bumptech.glide.Glide;
 
 import java.util.List;
 
@@ -119,12 +122,54 @@ public class MisPublicacionesActivity extends AppCompatActivity {
         contenido.setPadding(dp(20), dp(20), dp(20), dp(16));
         tarjeta.addView(contenido);
 
+        if (publicacion.getFotos() != null && !publicacion.getFotos().isEmpty()) {
+            ImageView imagen = new ImageView(this);
+            imagen.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+            LinearLayout.LayoutParams imagenParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    dp(180)
+            );
+            imagenParams.bottomMargin = dp(16);
+            imagen.setLayoutParams(imagenParams);
+            contenido.addView(imagen);
+
+            Glide.with(this)
+                    .load(ApiClient.imageUrl(publicacion.getFotos().get(0)))
+                    .centerCrop()
+                    .into(imagen);
+        }
+
+        LinearLayout encabezado = new LinearLayout(this);
+        encabezado.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        contenido.addView(encabezado);
+
         TextView titulo = new TextView(this);
         titulo.setText(publicacion.getTitulo());
         titulo.setTextColor(getColor(R.color.ronda_text_primary));
         titulo.setTextSize(20);
         titulo.setTypeface(null, 1);
-        contenido.addView(titulo);
+
+        LinearLayout.LayoutParams tituloParams = new LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1
+        );
+        titulo.setLayoutParams(tituloParams);
+        encabezado.addView(titulo);
+
+        MaterialButton btnEliminar = new MaterialButton(this);
+        btnEliminar.setText("");
+        btnEliminar.setAllCaps(false);
+        btnEliminar.setContentDescription("Eliminar publicación");
+        btnEliminar.setIconResource(android.R.drawable.ic_menu_close_clear_cancel);
+        btnEliminar.setIconTint(ColorStateList.valueOf(getColor(android.R.color.holo_red_dark)));
+        btnEliminar.setIconSize(dp(24));
+        btnEliminar.setBackgroundTintList(
+                ColorStateList.valueOf(getColor(android.R.color.transparent))
+        );
+        btnEliminar.setOnClickListener(view -> confirmarEliminacion(publicacion));
+        encabezado.addView(btnEliminar, new LinearLayout.LayoutParams(dp(48), dp(48)));
 
         TextView precio = new TextView(this);
         precio.setText("$ " + publicacion.getPrecio());
@@ -240,6 +285,44 @@ public class MisPublicacionesActivity extends AppCompatActivity {
                     ) {
                         boton.setEnabled(true);
 
+                        Toast.makeText(
+                                MisPublicacionesActivity.this,
+                                "No se pudo conectar con el servidor",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                });
+    }
+
+    private void confirmarEliminacion(ApiClient.PublicacionResponse publicacion) {
+        new AlertDialog.Builder(this)
+                .setTitle("Eliminar publicación")
+                .setMessage("¿Querés eliminar \"" + publicacion.getTitulo()
+                        + "\"? Esta acción no se puede deshacer.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Eliminar", (dialog, which) -> eliminarPublicacion(publicacion.getId()))
+                .show();
+    }
+
+    private void eliminarPublicacion(long id) {
+        ApiClient.api().deletePublicacion(id)
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.code() == 204) {
+                            cargarPublicaciones();
+                            return;
+                        }
+
+                        Toast.makeText(
+                                MisPublicacionesActivity.this,
+                                ApiClient.errorMessage(response, "No se pudo eliminar la publicación"),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable error) {
                         Toast.makeText(
                                 MisPublicacionesActivity.this,
                                 "No se pudo conectar con el servidor",

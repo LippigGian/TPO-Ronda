@@ -41,4 +41,10 @@ public class PublicacionController {
                                               @RequestPart("fotos") List<MultipartFile> fotos) {
         return service.addPhotos(user.getUsername(), id, fotos);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@AuthenticationPrincipal UserDetails user, @PathVariable Long id) {
+        service.delete(user.getUsername(), id);
+    }
 }

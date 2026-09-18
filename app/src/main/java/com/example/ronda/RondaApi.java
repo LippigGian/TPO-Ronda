@@ -8,6 +8,11 @@ import java.util.List;
 import retrofit2.http.GET;
 import retrofit2.http.PATCH;
 import retrofit2.http.Path;
+import retrofit2.http.DELETE;
+
+import okhttp3.MultipartBody;
+import retrofit2.http.Multipart;
+import retrofit2.http.Part;
 
 
 /**     INTERFAZ DONDE SOLO SE DECLARAN LOS METODOS HTTP **/
@@ -43,4 +48,15 @@ public interface RondaApi {
             @Path("id") long id,
             @Body ApiClient.ChangePublicacionStatusRequest request
     );
+    /** Multipart indica a retrofit que se enviaran archivos, no solo JSON**/
+    @Multipart
+    @POST("api/v1/publicaciones/{id}/fotos")
+    Call<ApiClient.PublicacionResponse> uploadFotos(
+            @Path("id") long id,
+            @Part List<MultipartBody.Part> fotos
+    );
+
+    @DELETE("api/v1/publicaciones/{id}")
+    Call<Void> deletePublicacion(@Path("id") long id);
+
 }

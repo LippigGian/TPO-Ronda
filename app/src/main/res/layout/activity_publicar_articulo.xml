@@ -152,6 +152,29 @@
                         android:inputType="numberDecimal|numberSigned" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSeleccionarFotos"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="20dp"
+                android:backgroundTint="@android:color/transparent"
+                android:text="Seleccionar fotos"
+                android:textAllCaps="false"
+                android:textColor="@color/ronda_primary"
+                android:textSize="16sp"
+                app:cornerRadius="14dp"
+                app:strokeColor="@color/ronda_outline" />
+
+            <TextView
+                android:id="@+id/tvFotosSeleccionadas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Podés seleccionar hasta 5 fotos."
+                android:textColor="@color/ronda_text_secondary"
+                android:textSize="14sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCrearPublicacion"

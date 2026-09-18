@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -17,8 +18,35 @@ import com.google.android.material.textfield.TextInputLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import android.net.Uri;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 
 public class PublicarArticuloActivity extends AppCompatActivity {
+    private final List<Uri> fotosSeleccionadas = new ArrayList<>();
+    private ActivityResultLauncher<String> selectorFotos;
+    private TextView tvFotosSeleccionadas;
+    private EditText etTitulo;
+    private EditText etDescripcion;
+    private EditText etCategoria;
+    private EditText etPrecio;
+    private EditText etDireccion;
+    private EditText etLatitud;
+    private EditText etLongitud;
+    private Spinner spinnerEstado;
+    private BorradorPublicacionManager borradorManager;
+    private boolean publicacionCreada;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,13 +54,13 @@ public class PublicarArticuloActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_publicar_articulo);
 
-        EditText etTitulo = findViewById(R.id.etTituloPublicacion);
-        EditText etDescripcion = findViewById(R.id.etDescripcionPublicacion);
-        EditText etCategoria = findViewById(R.id.etCategoriaPublicacion);
-        EditText etPrecio = findViewById(R.id.etPrecioPublicacion);
-        EditText etDireccion = findViewById(R.id.etDireccionPublicacion);
-        EditText etLatitud = findViewById(R.id.etLatitud);
-        EditText etLongitud = findViewById(R.id.etLongitud);
+        etTitulo = findViewById(R.id.etTituloPublicacion);
+        etDescripcion = findViewById(R.id.etDescripcionPublicacion);
+        etCategoria = findViewById(R.id.etCategoriaPublicacion);
+        etPrecio = findViewById(R.id.etPrecioPublicacion);
+        etDireccion = findViewById(R.id.etDireccionPublicacion);
+        etLatitud = findViewById(R.id.etLatitud);
+        etLongitud = findViewById(R.id.etLongitud);
 
         TextInputLayout tilTitulo = findViewById(R.id.tilTituloPublicacion);
         TextInputLayout tilDescripcion = findViewById(R.id.tilDescripcionPublicacion);
@@ -42,8 +70,45 @@ public class PublicarArticuloActivity extends AppCompatActivity {
         TextInputLayout tilLatitud = findViewById(R.id.tilLatitud);
         TextInputLayout tilLongitud = findViewById(R.id.tilLongitud);
 
-        Spinner spinnerEstado = findViewById(R.id.spinnerEstadoArticulo);
+        spinnerEstado = findViewById(R.id.spinnerEstadoArticulo);
+        Button btnSeleccionarFotos = findViewById(R.id.btnSeleccionarFotos);
         Button btnCrearPublicacion = findViewById(R.id.btnCrearPublicacion);
+        tvFotosSeleccionadas = findViewById(R.id.tvFotosSeleccionadas);
+
+        borradorManager = BorradorPublicacionManager.getInstance(this);
+        restaurarBorrador();
+
+        selectorFotos = registerForActivityResult(
+                new ActivityResultContracts.GetMultipleContents(),
+                uris -> {
+                    fotosSeleccionadas.clear();
+
+                    for (Uri uri : uris) {
+                        if (fotosSeleccionadas.size() == 5) {
+                            break;
+                        }
+                        fotosSeleccionadas.add(uri);
+                    }
+
+                    if (uris.size() > 5) {
+                        Toast.makeText(
+                                this,
+                                "Solo se seleccionaron las primeras 5 fotos",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+
+                    if (fotosSeleccionadas.isEmpty()) {
+                        tvFotosSeleccionadas.setText("Podés seleccionar hasta 5 fotos.");
+                    } else {
+                        tvFotosSeleccionadas.setText(
+                                fotosSeleccionadas.size() + " foto(s) seleccionada(s)"
+                        );
+                    }
+                }
+        );
+
+        btnSeleccionarFotos.setOnClickListener(view -> selectorFotos.launch("image/*"));
 
         btnCrearPublicacion.setOnClickListener(view -> {
             String titulo = etTitulo.getText().toString().trim();
@@ -116,6 +181,15 @@ public class PublicarArticuloActivity extends AppCompatActivity {
                 return;
             }
 
+            if (fotosSeleccionadas.isEmpty()) {
+                Toast.makeText(
+                        this,
+                        "Seleccioná al menos una foto para publicar",
+                        Toast.LENGTH_LONG
+                ).show();
+                return;
+            }
+
             btnCrearPublicacion.setEnabled(false);
 
             ApiClient.CreatePublicacionRequest request =
@@ -137,17 +211,27 @@ public class PublicarArticuloActivity extends AppCompatActivity {
                                 Call<ApiClient.PublicacionResponse> call,
                                 Response<ApiClient.PublicacionResponse> response
                         ) {
-                            btnCrearPublicacion.setEnabled(true);
+                            if (response.code() == 201 && response.body() != null) {
+                                if (fotosSeleccionadas.isEmpty()) {
+                                    btnCrearPublicacion.setEnabled(true);
 
-                            if (response.code() == 201) {
-                                Toast.makeText(
-                                        PublicarArticuloActivity.this,
-                                        "Publicación creada correctamente",
-                                        Toast.LENGTH_LONG
-                                ).show();
-                                finish();
+                                    Toast.makeText(
+                                            PublicarArticuloActivity.this,
+                                            "Publicación creada correctamente",
+                                            Toast.LENGTH_LONG
+                                    ).show();
+
+                                    publicacionCreada = true;
+                                    borradorManager.borrar();
+                                    finish();
+                                    return;
+                                }
+
+                                subirFotos(response.body().getId(), btnCrearPublicacion);
                                 return;
                             }
+
+                            btnCrearPublicacion.setEnabled(true);
 
                             Toast.makeText(
                                     PublicarArticuloActivity.this,
@@ -180,5 +264,169 @@ public class PublicarArticuloActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+    }
+    private void subirFotos(
+            long publicacionId,
+            Button btnCrearPublicacion
+    ) {
+        List<MultipartBody.Part> partes;
+
+        try {
+            partes = crearPartesFotos();
+        } catch (IOException error) {
+            btnCrearPublicacion.setEnabled(true);
+
+            Toast.makeText(
+                    this,
+                    "La publicación se creó, pero no se pudieron preparar las fotos",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        ApiClient.api()
+                .uploadFotos(publicacionId, partes)
+                .enqueue(new Callback<ApiClient.PublicacionResponse>() {
+                    @Override
+                    public void onResponse(
+                            Call<ApiClient.PublicacionResponse> call,
+                            Response<ApiClient.PublicacionResponse> response
+                    ) {
+                        btnCrearPublicacion.setEnabled(true);
+
+                        if (response.isSuccessful()) {
+                            Toast.makeText(
+                                    PublicarArticuloActivity.this,
+                                    "Publicación creada con sus fotos",
+                                    Toast.LENGTH_LONG
+                            ).show();
+
+                            publicacionCreada = true;
+                            borradorManager.borrar();
+                            finish();
+                            return;
+                        }
+
+                        Toast.makeText(
+                                PublicarArticuloActivity.this,
+                                ApiClient.errorMessage(
+                                        response,
+                                        "La publicación se creó, pero no se pudieron subir las fotos"
+                                ),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<ApiClient.PublicacionResponse> call,
+                            Throwable error
+                    ) {
+                        btnCrearPublicacion.setEnabled(true);
+
+                        Toast.makeText(
+                                PublicarArticuloActivity.this,
+                                "La publicación se creó, pero no se pudieron subir las fotos",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                });
+    }
+
+    private List<MultipartBody.Part> crearPartesFotos() throws IOException {
+        List<MultipartBody.Part> partes = new ArrayList<>();
+
+        for (int i = 0; i < fotosSeleccionadas.size(); i++) {
+            Uri uri = fotosSeleccionadas.get(i);
+            String contentType = getContentResolver().getType(uri);
+
+            if (contentType == null) {
+                contentType = "image/jpeg";
+            }
+
+            InputStream input = getContentResolver().openInputStream(uri);
+
+            if (input == null) {
+                throw new IOException("No se pudo leer la imagen");
+            }
+
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+
+            while ((bytesRead = input.read(buffer)) != -1) {
+                output.write(buffer, 0, bytesRead);
+            }
+
+            input.close();
+
+            RequestBody body = RequestBody.create(
+                    MediaType.parse(contentType),
+                    output.toByteArray()
+            );
+
+            MultipartBody.Part parte = MultipartBody.Part.createFormData(
+                    "fotos",
+                    "foto_" + (i + 1) + ".jpg",
+                    body
+            );
+
+            partes.add(parte);
+        }
+
+        return partes;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (borradorManager == null || publicacionCreada) {
+            return;
+        }
+
+        borradorManager.guardar(new BorradorPublicacionManager.Borrador(
+                etTitulo.getText().toString(),
+                etDescripcion.getText().toString(),
+                etCategoria.getText().toString(),
+                etPrecio.getText().toString(),
+                etDireccion.getText().toString(),
+                etLatitud.getText().toString(),
+                etLongitud.getText().toString(),
+                spinnerEstado.getSelectedItem().toString()
+        ));
+    }
+
+    private void restaurarBorrador() {
+        borradorManager.leer(borrador -> runOnUiThread(() -> {
+            if (borrador.estaVacio()) {
+                return;
+            }
+
+            etTitulo.setText(borrador.titulo);
+            etDescripcion.setText(borrador.descripcion);
+            etCategoria.setText(borrador.categoria);
+            etPrecio.setText(borrador.precio);
+            etDireccion.setText(borrador.direccion);
+            etLatitud.setText(borrador.latitud);
+            etLongitud.setText(borrador.longitud);
+            seleccionarEstadoGuardado(borrador.estadoArticulo);
+
+            Toast.makeText(
+                    this,
+                    "Recuperamos el borrador de tu publicación",
+                    Toast.LENGTH_LONG
+            ).show();
+        }));
+    }
+
+    private void seleccionarEstadoGuardado(String estadoGuardado) {
+        for (int i = 0; i < spinnerEstado.getCount(); i++) {
+            if (spinnerEstado.getItemAtPosition(i).toString().equals(estadoGuardado)) {
+                spinnerEstado.setSelection(i);
+                return;
+            }
+        }
     }
 }

@@ -61,6 +61,10 @@ public final class ApiClient {
         return api;
     }
 
+    public static String imageUrl(String path) {
+        return BASE_URL + path.replaceFirst("^/", "");
+    }
+
     public static String errorMessage(Response<?> response, String fallback) {
         if (response.errorBody() == null) {
             return fallback;

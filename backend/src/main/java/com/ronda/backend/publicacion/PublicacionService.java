@@ -59,6 +59,15 @@ public class PublicacionService {
         return PublicacionDtos.Response.from(publicacion);
     }
 
+    @Transactional
+    public void delete(String email, Long id) {
+        Usuario vendedor = findUser(email);
+        Publicacion publicacion = publicaciones.findByIdAndVendedorId(id, vendedor.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Publicación no encontrada"));
+        publicacion.getFotos().forEach(foto -> fotos.delete(foto.getArchivo()));
+        publicaciones.delete(publicacion);
+    }
+
     private Usuario findUser(String email) {
         return usuarios.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sesión inválida"));

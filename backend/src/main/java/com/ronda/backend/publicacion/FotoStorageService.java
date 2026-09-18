@@ -39,4 +39,12 @@ public class FotoStorageService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo guardar la imagen");
         }
     }
+
+    public void delete(String fileName) {
+        try {
+            Files.deleteIfExists(uploadDir.resolve(fileName).normalize());
+        } catch (IOException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo eliminar la imagen");
+        }
+    }
 }
