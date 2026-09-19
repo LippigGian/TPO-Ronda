@@ -51,9 +51,6 @@
             android:name=".MisPublicacionesActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".TestOfflineActivity"
-            android:exported="true" />
     </application>
 
 </manifest>
