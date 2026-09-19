@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name=".RondaApplication"
@@ -50,6 +51,9 @@
             android:name=".MisPublicacionesActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".TestOfflineActivity"
+            android:exported="true" />
     </application>
 
 </manifest>
