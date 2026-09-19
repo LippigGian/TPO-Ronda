@@ -51,6 +51,9 @@
             android:name=".MisPublicacionesActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".PuntoEntregaActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
