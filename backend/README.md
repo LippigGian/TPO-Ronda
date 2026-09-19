@@ -19,6 +19,18 @@ Registro y login por contraseña entregan sesiones JWT. El registro deja la cuen
 se almacenan como hash y admiten hasta cinco intentos fallidos.
 Docker Compose incluye Mailpit para desarrollo: los emails se pueden ver en `http://localhost:8025`.
 
+### Usuario de prueba local
+
+Flyway crea una única cuenta de desarrollo para facilitar las pruebas del equipo. Está disponible
+también en bases existentes después de reiniciar el backend para aplicar la migración:
+
+```text
+Email: demo@ronda.com
+Contraseña: ronda123
+```
+
+Es un usuario solo para desarrollo; no usar esas credenciales en un entorno público.
+
 ## Publicaciones
 
 Las rutas de publicaciones requieren un JWT válido, excepto la lectura de archivos bajo `/uploads/**`.
