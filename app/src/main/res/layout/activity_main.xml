@@ -87,4 +87,23 @@
         app:layout_constraintTop_toBottomOf="@id/btnIrAPublicarArticulo"
         app:strokeColor="@color/ronda_outline" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnIrAMiPerfil"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="24dp"
+        android:backgroundTint="@android:color/transparent"
+        android:text="Mi perfil"
+        android:textAllCaps="false"
+        android:textColor="@color/ronda_primary"
+        android:textSize="16sp"
+        app:cornerRadius="14dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnIrAMisPublicaciones"
+        app:strokeColor="@color/ronda_outline" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
