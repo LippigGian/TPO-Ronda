@@ -238,9 +238,102 @@ public class MisPublicacionesActivity extends AppCompatActivity {
             );
 
             contenido.addView(btnCambiarEstado);
+
+            MaterialButton btnMarcarVendida = new MaterialButton(this);
+            btnMarcarVendida.setText("Marcar como vendida");
+            btnMarcarVendida.setAllCaps(false);
+            btnMarcarVendida.setTextColor(getColor(android.R.color.white));
+            btnMarcarVendida.setBackgroundTintList(
+                    ColorStateList.valueOf(getColor(R.color.ronda_primary))
+            );
+            btnMarcarVendida.setCornerRadius(dp(14));
+
+            LinearLayout.LayoutParams vendidaParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    dp(48)
+            );
+            vendidaParams.topMargin = dp(10);
+            btnMarcarVendida.setLayoutParams(vendidaParams);
+
+            btnMarcarVendida.setOnClickListener(view -> mostrarDialogoVender(publicacion.getId()));
+
+            contenido.addView(btnMarcarVendida);
         }
 
         return tarjeta;
+    }
+
+    private void mostrarDialogoVender(long publicacionId) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_vender_publicacion, null);
+        com.google.android.material.textfield.TextInputEditText etCompradorEmail =
+                dialogView.findViewById(R.id.etCompradorEmail);
+        com.google.android.material.textfield.TextInputEditText etMontoFinal =
+                dialogView.findViewById(R.id.etMontoFinal);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Marcar como vendida")
+                .setMessage("Ingresá el email del comprador y el monto final acordado.")
+                .setView(dialogView)
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Confirmar venta", (dialog, which) -> {
+                    String compradorEmail = etCompradorEmail.getText().toString().trim();
+                    String montoTexto = etMontoFinal.getText().toString().trim();
+
+                    if (compradorEmail.isEmpty() || montoTexto.isEmpty()) {
+                        Toast.makeText(this, "Completá el email y el monto", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    double montoFinal;
+                    try {
+                        montoFinal = Double.parseDouble(montoTexto.replace(",", "."));
+                        if (montoFinal <= 0) {
+                            throw new NumberFormatException();
+                        }
+                    } catch (NumberFormatException error) {
+                        Toast.makeText(this, "Ingresá un monto válido", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    venderPublicacion(publicacionId, compradorEmail, montoFinal);
+                })
+                .show();
+    }
+
+    private void venderPublicacion(long publicacionId, String compradorEmail, double montoFinal) {
+        ApiClient.api()
+                .venderPublicacion(publicacionId, new ApiClient.VenderRequest(compradorEmail, montoFinal))
+                .enqueue(new Callback<ApiClient.HistorialItemResponse>() {
+                    @Override
+                    public void onResponse(
+                            Call<ApiClient.HistorialItemResponse> call,
+                            Response<ApiClient.HistorialItemResponse> response
+                    ) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(
+                                    MisPublicacionesActivity.this,
+                                    "Publicación marcada como vendida",
+                                    Toast.LENGTH_LONG
+                            ).show();
+                            cargarPublicaciones();
+                            return;
+                        }
+                        Toast.makeText(
+                                MisPublicacionesActivity.this,
+                                ApiClient.errorMessage(response, "No se pudo registrar la venta"),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiClient.HistorialItemResponse> call, Throwable error) {
+                        Toast.makeText(
+                                MisPublicacionesActivity.this,
+                                "No se pudo conectar con el servidor",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                });
     }
 
     private void cambiarEstado(

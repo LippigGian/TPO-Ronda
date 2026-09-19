@@ -9,6 +9,7 @@ import retrofit2.http.GET;
 import retrofit2.http.PATCH;
 import retrofit2.http.Path;
 import retrofit2.http.DELETE;
+import retrofit2.http.Query;
 
 import okhttp3.MultipartBody;
 import retrofit2.http.Multipart;
@@ -81,5 +82,36 @@ public interface RondaApi {
 
     @DELETE("api/v1/publicaciones/{id}")
     Call<Void> deletePublicacion(@Path("id") long id);
+
+    /** Usuarios **/
+    @GET("api/v1/usuarios/buscar")
+    Call<ApiClient.BuscarUsuarioResponse> buscarUsuario(@Query("email") String email);
+
+    @GET("api/v1/usuarios/{id}/reputacion")
+    Call<ApiClient.ReputacionResponse> getReputacion(@Path("id") long usuarioId);
+
+    /** Ventas / historial de operaciones **/
+    @POST("api/v1/publicaciones/{id}/venta")
+    Call<ApiClient.HistorialItemResponse> venderPublicacion(
+            @Path("id") long id,
+            @Body ApiClient.VenderRequest request
+    );
+
+    @GET("api/v1/operaciones/historial")
+    Call<List<ApiClient.HistorialItemResponse>> getHistorial(
+            @Query("tipo") String tipo,
+            @Query("desde") String desde,
+            @Query("hasta") String hasta
+    );
+
+    @GET("api/v1/operaciones/pendientes-calificar")
+    Call<List<ApiClient.HistorialItemResponse>> getPendientesCalificar();
+
+    /** Calificaciones **/
+    @POST("api/v1/operaciones/{operacionId}/calificaciones")
+    Call<ApiClient.CalificacionResponse> crearCalificacion(
+            @Path("operacionId") long operacionId,
+            @Body ApiClient.CalificacionRequest request
+    );
 
 }
