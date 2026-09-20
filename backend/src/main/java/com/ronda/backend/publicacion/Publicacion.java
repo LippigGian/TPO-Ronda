@@ -42,6 +42,8 @@ public class Publicacion {
     private BigDecimal latitud;
     @Column(nullable = false, precision = 9, scale = 6)
     private BigDecimal longitud;
+    @Column(length = 80)
+    private String zona;
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
     @Column(name = "updated_at", nullable = false)
@@ -59,6 +61,21 @@ public class Publicacion {
         this.direccion = request.direccion().trim();
         this.latitud = request.latitud();
         this.longitud = request.longitud();
+        this.zona = zonaDe(request);
+    }
+
+    /** Usa la zona informada o, si no viene, el último tramo de la dirección ("Calle 123, Palermo" -> "Palermo"). */
+    private static String zonaDe(PublicacionDtos.CreateRequest request) {
+        if (request.zona() != null && !request.zona().isBlank()) {
+            return request.zona().trim();
+        }
+        String direccion = request.direccion().trim();
+        int coma = direccion.lastIndexOf(',');
+        if (coma < 0 || coma == direccion.length() - 1) {
+            return null;
+        }
+        String tramo = direccion.substring(coma + 1).trim();
+        return tramo.length() > 80 ? tramo.substring(0, 80) : tramo;
     }
 
     public Long getId() { return id; }
@@ -73,6 +90,7 @@ public class Publicacion {
     public String getDireccion() { return direccion; }
     public BigDecimal getLatitud() { return latitud; }
     public BigDecimal getLongitud() { return longitud; }
+    public String getZona() { return zona; }
     public Instant getCreatedAt() { return createdAt; }
 
     public void cambiarEstado(EstadoPublicacion estado) {
