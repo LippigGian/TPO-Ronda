@@ -48,6 +48,11 @@ public class PublicacionController {
         return service.categorias();
     }
 
+    @GetMapping("/{id}")
+    public PublicacionDtos.Detalle detalle(@AuthenticationPrincipal UserDetails user, @PathVariable Long id) {
+        return service.detalle(user.getUsername(), id);
+    }
+
     @GetMapping("/mias")
     public List<PublicacionDtos.Response> listMine(@AuthenticationPrincipal UserDetails user) {
         return service.listMine(user.getUsername());

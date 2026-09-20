@@ -36,5 +36,6 @@ public class Usuario {
     public String getNombreUsuario() { return nombreUsuario; }
     public boolean isEmailVerificado() { return emailVerificado; }
     public boolean isActivo() { return activo; }
+    public Instant getCreatedAt() { return createdAt; }
     public void verificarEmail() { this.emailVerificado = true; }
 }

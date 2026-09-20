@@ -57,4 +57,36 @@ public final class PublicacionDtos {
                     page.getTotalElements(), page.getTotalPages(), page.isLast());
         }
     }
+
+    /** Reputación del vendedor. Hasta que exista el módulo de calificaciones (punto 9) llega en cero. */
+    public record Reputacion(Double promedioEstrellas, int cantidadCalificaciones,
+                             int operacionesComoVendedor, int operacionesComoComprador) {
+        static Reputacion sinDatos() {
+            return new Reputacion(null, 0, 0, 0);
+        }
+    }
+
+    public record Vendedor(Long id, String nombre, Instant miembroDesde, Reputacion reputacion) { }
+
+    /**
+     * Detalle de una publicación. La dirección exacta y las coordenadas solo viajan cuando
+     * {@code direccionVisible} es true (dueño de la publicación u oferta aceptada); si no, van en null.
+     */
+    public record Detalle(Long id, String titulo, String descripcion, String categoria, BigDecimal precio,
+                          EstadoArticulo estadoArticulo, EstadoPublicacion estadoPublicacion, String zona,
+                          Instant createdAt, List<String> fotos, boolean esPropia, boolean direccionVisible,
+                          String direccion, BigDecimal latitud, BigDecimal longitud, Vendedor vendedor) {
+        static Detalle from(Publicacion p, boolean esPropia, boolean direccionVisible, Reputacion reputacion) {
+            var vendedor = new Vendedor(p.getVendedor().getId(), p.getVendedor().getNombreUsuario(),
+                    p.getVendedor().getCreatedAt(), reputacion);
+            return new Detalle(p.getId(), p.getTitulo(), p.getDescripcion(), p.getCategoria(), p.getPrecio(),
+                    p.getEstadoArticulo(), p.getEstadoPublicacion(), p.getZona(), p.getCreatedAt(),
+                    p.getFotos().stream().map(foto -> "/uploads/" + foto.getArchivo()).toList(),
+                    esPropia, direccionVisible,
+                    direccionVisible ? p.getDireccion() : null,
+                    direccionVisible ? p.getLatitud() : null,
+                    direccionVisible ? p.getLongitud() : null,
+                    vendedor);
+        }
+    }
 }

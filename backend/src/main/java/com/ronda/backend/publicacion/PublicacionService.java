@@ -39,6 +39,22 @@ public class PublicacionService {
     }
 
     @Transactional(readOnly = true)
+    public PublicacionDtos.Detalle detalle(String email, Long id) {
+        Usuario usuario = findUser(email);
+        Publicacion publicacion = publicaciones.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Publicación no encontrada"));
+        boolean esPropia = publicacion.getVendedor().getId().equals(usuario.getId());
+        // Pausadas y vendidas solo las ve su dueño; para el resto es como si no existieran.
+        if (!esPropia && publicacion.getEstadoPublicacion() != EstadoPublicacion.ACTIVA) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Publicación no encontrada");
+        }
+        // TODO punto 7 (ofertas): también debe ser visible si el usuario tiene una oferta ACEPTADA sobre esta publicación.
+        boolean direccionVisible = esPropia;
+        // TODO punto 2/9: reemplazar por la reputación real cuando existan las calificaciones.
+        return PublicacionDtos.Detalle.from(publicacion, esPropia, direccionVisible, PublicacionDtos.Reputacion.sinDatos());
+    }
+
+    @Transactional(readOnly = true)
     public List<String> categorias() {
         return publicaciones.findCategoriasActivas();
     }
