@@ -37,4 +37,24 @@ public final class PublicacionDtos {
                             .map(foto -> "/uploads/" + foto.getArchivo()).toList());
         }
     }
+
+    /** Item del Home: no expone la dirección exacta ni las coordenadas del vendedor. */
+    public record Resumen(Long id, String titulo, String categoria, BigDecimal precio,
+                          EstadoArticulo estadoArticulo, EstadoPublicacion estadoPublicacion,
+                          String zona, Instant createdAt, List<String> fotos, Integer distanciaKm) {
+        static Resumen from(Publicacion publicacion, Integer distanciaKm) {
+            return new Resumen(publicacion.getId(), publicacion.getTitulo(), publicacion.getCategoria(),
+                    publicacion.getPrecio(), publicacion.getEstadoArticulo(), publicacion.getEstadoPublicacion(),
+                    publicacion.getZona(), publicacion.getCreatedAt(), publicacion.getFotos().stream()
+                            .map(foto -> "/uploads/" + foto.getArchivo()).toList(), distanciaKm);
+        }
+    }
+
+    public record PageResponse<T>(List<T> content, int page, int size, long totalElements,
+                                  int totalPages, boolean last) {
+        static <T> PageResponse<T> from(org.springframework.data.domain.Page<T> page) {
+            return new PageResponse<>(page.getContent(), page.getNumber(), page.getSize(),
+                    page.getTotalElements(), page.getTotalPages(), page.isLast());
+        }
+    }
 }
