@@ -13,7 +13,9 @@ import java.util.List;
 
 
 public final class ApiClient {
-    private static final String BASE_URL = "http://127.0.0.1:8080/";
+    // 10.0.2.2 es el alias especial del emulador de Android para llegar al localhost de la PC host.
+    // Si corrés la app en un celular físico, cambiar por la IP de la PC en la red (ej: http://192.168.x.x:8080/).
+    private static final String BASE_URL = "http://10.0.2.2:8080/";
 
     /** Preparo Retrofti para utilizar la ainterfaz RondaApi **/
     private static RondaApi api;

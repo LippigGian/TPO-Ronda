@@ -221,11 +221,8 @@ public class HistorialOperacionesActivity extends AppCompatActivity {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         detalleParams.topMargin = dp(8);
         detalle.setLayoutParams(detalleParams);
-        detalle.setOnClickListener(view -> {
-            Intent intent = new Intent(this, PerfilUsuarioActivity.class);
-            intent.putExtra("USUARIO_ID", operacion.getContraparteId());
-            startActivity(intent);
-        });
+        detalle.setOnClickListener(view ->
+                com.example.ronda.perfil.PerfilPublicoActivity.abrir(this, operacion.getContraparteId()));
         contenido.addView(detalle);
 
         if (operacion.puedeCalificarAhora()) {

@@ -2,6 +2,7 @@ package com.ronda.backend.perfil;
 
 import com.ronda.backend.oferta.EstadoOferta;
 import com.ronda.backend.oferta.OfertaRepository;
+import com.ronda.backend.operacion.CalificacionRepository;
 import com.ronda.backend.publicacion.EstadoPublicacion;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,15 +15,19 @@ import org.springframework.transaction.annotation.Transactional;
  * mismo nombre y el backend no arrancaria al mergear ambas ramas.
  * Cuando se integre la feature de calificaciones (punto 9), solo hay que cambiar esta
  * clase: los controladores y las pantallas ya consumen el record Reputacion.
+ * Cuando exista la feature de ofertas (punto 7), solo hay que cambiar esta clase: los
+ * controladores y las pantallas ya consumen el record Reputacion y no se enteran del cambio.
  */
 @Service
 public class ReputacionPerfilService {
     private final PerfilPublicacionRepository publicaciones;
     private final OfertaRepository ofertas;
+    private final CalificacionRepository calificaciones;
 
-    public ReputacionPerfilService(PerfilPublicacionRepository publicaciones, OfertaRepository ofertas) {
+    public ReputacionPerfilService(PerfilPublicacionRepository publicaciones, OfertaRepository ofertas, CalificacionRepository calificaciones) {
         this.publicaciones = publicaciones;
         this.ofertas = ofertas;
+        this.calificaciones = calificaciones;
     }
 
     @Transactional(readOnly = true)
@@ -30,9 +35,8 @@ public class ReputacionPerfilService {
         // Ventas: publicaciones del usuario marcadas como VENDIDA.
         long ventas = publicaciones.countByVendedorIdAndEstadoPublicacion(usuarioId, EstadoPublicacion.VENDIDA);
 
-        // TODO punto 9: promedio y cantidad desde la tabla de calificaciones.
-        Double promedioEstrellas = null;
-        long cantidadCalificaciones = 0;
+        Double promedioEstrellas = calificaciones.promedioPuntaje(usuarioId);
+        long cantidadCalificaciones = calificaciones.countByReceptorId(usuarioId);
 
         // Compras: ofertas aceptadas como comprador sobre publicaciones que ya se vendieron.
         long compras = ofertas.countByCompradorIdAndEstadoAndPublicacionEstadoPublicacion(usuarioId,

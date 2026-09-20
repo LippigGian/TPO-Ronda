@@ -14,7 +14,6 @@ import retrofit2.http.Query;
 import okhttp3.MultipartBody;
 import retrofit2.http.Multipart;
 import retrofit2.http.Part;
-import retrofit2.http.Query;
 
 
 /**     INTERFAZ DONDE SOLO SE DECLARAN LOS METODOS HTTP **/
@@ -86,9 +85,6 @@ public interface RondaApi {
     /** Usuarios **/
     @GET("api/v1/usuarios/buscar")
     Call<ApiClient.BuscarUsuarioResponse> buscarUsuario(@Query("email") String email);
-
-    @GET("api/v1/usuarios/{id}/reputacion")
-    Call<ApiClient.ReputacionResponse> getReputacion(@Path("id") long usuarioId);
 
     /** Ventas / historial de operaciones **/
     @POST("api/v1/publicaciones/{id}/venta")

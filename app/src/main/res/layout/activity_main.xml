@@ -138,7 +138,6 @@
         app:cornerRadius="14dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnIrAMisPublicaciones"
         app:layout_constraintTop_toBottomOf="@id/btnIrAHistorial"
         app:strokeColor="@color/ronda_outline" />
 
