@@ -11,6 +11,8 @@
     <string name="create_account_button">¿No tenés cuenta? Crear cuenta</string>
 
     //Publicaciones //
+    <string name="foto_publicacion">Foto del artículo</string>
+
     <string-array name="estados_articulo">
         <item>NUEVO</item>
         <item>COMO_NUEVO</item>
