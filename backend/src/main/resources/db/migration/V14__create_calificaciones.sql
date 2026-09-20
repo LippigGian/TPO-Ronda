@@ -3,7 +3,7 @@ CREATE TABLE ronda.calificaciones (
     operacion_id BIGINT NOT NULL REFERENCES ronda.operaciones(id),
     autor_id BIGINT NOT NULL REFERENCES ronda.usuarios(id),
     receptor_id BIGINT NOT NULL REFERENCES ronda.usuarios(id),
-    puntaje SMALLINT NOT NULL,
+    puntaje INTEGER NOT NULL,
     comentario VARCHAR(500),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT uk_calificaciones_operacion_autor UNIQUE (operacion_id, autor_id),
