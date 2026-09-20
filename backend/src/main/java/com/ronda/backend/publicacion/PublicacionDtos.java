@@ -76,8 +76,9 @@ public final class PublicacionDtos {
                           EstadoArticulo estadoArticulo, EstadoPublicacion estadoPublicacion, String zona,
                           Instant createdAt, List<String> fotos, boolean esPropia, boolean direccionVisible,
                           String direccion, BigDecimal latitud, BigDecimal longitud, Vendedor vendedor) {
-        static Detalle from(Publicacion p, boolean esPropia, boolean direccionVisible, Reputacion reputacion) {
-            var vendedor = new Vendedor(p.getVendedor().getId(), p.getVendedor().getNombreUsuario(),
+        static Detalle from(Publicacion p, boolean esPropia, boolean direccionVisible,
+                            String nombreVendedor, Reputacion reputacion) {
+            var vendedor = new Vendedor(p.getVendedor().getId(), nombreVendedor,
                     p.getVendedor().getCreatedAt(), reputacion);
             return new Detalle(p.getId(), p.getTitulo(), p.getDescripcion(), p.getCategoria(), p.getPrecio(),
                     p.getEstadoArticulo(), p.getEstadoPublicacion(), p.getZona(), p.getCreatedAt(),

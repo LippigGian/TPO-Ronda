@@ -2,6 +2,9 @@ package com.ronda.backend.publicacion;
 
 import com.ronda.backend.auth.Usuario;
 import com.ronda.backend.auth.UsuarioRepository;
+import com.ronda.backend.perfil.PerfilDtos;
+import com.ronda.backend.perfil.PerfilService;
+import com.ronda.backend.perfil.ReputacionPerfilService;
 import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -16,11 +19,16 @@ public class PublicacionService {
     private final PublicacionRepository publicaciones;
     private final UsuarioRepository usuarios;
     private final FotoStorageService fotos;
+    private final PerfilService perfiles;
+    private final ReputacionPerfilService reputaciones;
 
-    public PublicacionService(PublicacionRepository publicaciones, UsuarioRepository usuarios, FotoStorageService fotos) {
+    public PublicacionService(PublicacionRepository publicaciones, UsuarioRepository usuarios, FotoStorageService fotos,
+                              PerfilService perfiles, ReputacionPerfilService reputaciones) {
         this.publicaciones = publicaciones;
         this.usuarios = usuarios;
         this.fotos = fotos;
+        this.perfiles = perfiles;
+        this.reputaciones = reputaciones;
     }
 
     @Transactional
@@ -50,8 +58,10 @@ public class PublicacionService {
         }
         // TODO punto 7 (ofertas): también debe ser visible si el usuario tiene una oferta ACEPTADA sobre esta publicación.
         boolean direccionVisible = esPropia;
-        // TODO punto 2/9: reemplazar por la reputación real cuando existan las calificaciones.
-        return PublicacionDtos.Detalle.from(publicacion, esPropia, direccionVisible, PublicacionDtos.Reputacion.sinDatos());
+        // Punto 2: mismo nombre y reputación que muestra el perfil público del vendedor.
+        Usuario vendedor = publicacion.getVendedor();
+        return PublicacionDtos.Detalle.from(publicacion, esPropia, direccionVisible,
+                perfiles.nombrePublico(vendedor), reputacionDe(vendedor.getId()));
     }
 
     @Transactional(readOnly = true)
@@ -113,6 +123,13 @@ public class PublicacionService {
         double a = Math.pow(Math.sin(dLat / 2), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dLng / 2), 2);
         double km = 2 * 6371.0 * Math.asin(Math.min(1.0, Math.sqrt(a)));
         return (int) Math.max(1, Math.round(km));
+    }
+
+    /** Adapta la reputación calculada por el módulo de perfil al formato del detalle. */
+    private PublicacionDtos.Reputacion reputacionDe(Long usuarioId) {
+        PerfilDtos.Reputacion r = reputaciones.calcular(usuarioId);
+        return new PublicacionDtos.Reputacion(r.promedioEstrellas(), (int) r.cantidadCalificaciones(),
+                (int) r.ventasConcretadas(), (int) r.comprasConcretadas());
     }
 
     private Usuario findUser(String email) {

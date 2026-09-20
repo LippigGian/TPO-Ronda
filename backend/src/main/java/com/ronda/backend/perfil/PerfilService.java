@@ -19,11 +19,11 @@ public class PerfilService {
     private final UsuarioRepository usuarios;
     private final PerfilRepository perfiles;
     private final PerfilPublicacionRepository publicaciones;
-    private final ReputacionService reputacionService;
+    private final ReputacionPerfilService reputacionService;
     private final FotoStorageService fotos;
 
     public PerfilService(UsuarioRepository usuarios, PerfilRepository perfiles,
-                         PerfilPublicacionRepository publicaciones, ReputacionService reputacionService,
+                         PerfilPublicacionRepository publicaciones, ReputacionPerfilService reputacionService,
                          FotoStorageService fotos) {
         this.usuarios = usuarios;
         this.perfiles = perfiles;
@@ -73,12 +73,35 @@ public class PerfilService {
                 .map(PerfilDtos.PublicacionResumen::from)
                 .toList();
 
-        String nombre = perfil.getNombre() != null ? perfil.getNombre() : NOMBRE_POR_DEFECTO;
-        return new PerfilDtos.PerfilPublicoResponse(usuario.getId(), nombre, perfil.getZona(),
+        return new PerfilDtos.PerfilPublicoResponse(usuario.getId(), nombrePublico(usuario, perfil), perfil.getZona(),
                 perfil.getFotoUrl(), usuario.getCreatedAt(), reputacionService.calcular(usuarioId), activas);
     }
 
+    /**
+     * Nombre que ven los demas usuarios. Lo usan el perfil publico y el detalle de publicacion,
+     * asi el vendedor se muestra igual en toda la app.
+     */
+    @Transactional(readOnly = true)
+    public String nombrePublico(Usuario usuario) {
+        return nombrePublico(usuario, obtenerOCrear(usuario));
+    }
+
     // ---------- helpers privados ----------
+
+    /**
+     * Prioridad: nombre cargado en el perfil; si no hay, nombre_usuario de la cuenta,
+     * salvo que sea un email (el registro lo inicializa con el email y no debe exponerse).
+     */
+    private static String nombrePublico(Usuario usuario, Perfil perfil) {
+        if (perfil.getNombre() != null) {
+            return perfil.getNombre();
+        }
+        String nombreCuenta = usuario.getNombreUsuario();
+        if (nombreCuenta != null && !nombreCuenta.isBlank() && !nombreCuenta.contains("@")) {
+            return nombreCuenta;
+        }
+        return NOMBRE_POR_DEFECTO;
+    }
 
     private PerfilDtos.MiPerfilResponse armarMiPerfil(Usuario usuario, Perfil perfil) {
         return new PerfilDtos.MiPerfilResponse(usuario.getId(), usuario.getEmail(), perfil.getNombre(),
