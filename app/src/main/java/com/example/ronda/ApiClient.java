@@ -198,6 +198,23 @@ public final class ApiClient {
         private String zona;
         private String createdAt;
         private Integer distanciaKm;
+        // Campos que completa el detalle: rol de quien mira, permiso sobre la dirección y datos del vendedor.
+        private boolean esPropia;
+        private boolean direccionVisible;
+        private VendedorResponse vendedor;
+
+        public boolean isEsPropia() {
+            return esPropia;
+        }
+
+        /** false mientras el usuario no pueda ver la dirección exacta (antes de una oferta aceptada). */
+        public boolean isDireccionVisible() {
+            return direccionVisible;
+        }
+
+        public VendedorResponse getVendedor() {
+            return vendedor;
+        }
 
         public String getZona() {
             return zona;
@@ -272,6 +289,30 @@ public final class ApiClient {
         public long getTotalElements() { return totalElements; }
         public int getTotalPages() { return totalPages; }
         public boolean isLast() { return last; }
+    }
+
+    public static final class VendedorResponse {
+        private long id;
+        private String nombre;
+        private String miembroDesde;
+        private ReputacionResponse reputacion;
+
+        public long getId() { return id; }
+        public String getNombre() { return nombre; }
+        public String getMiembroDesde() { return miembroDesde; }
+        public ReputacionResponse getReputacion() { return reputacion; }
+    }
+
+    public static final class ReputacionResponse {
+        private Double promedioEstrellas;
+        private int cantidadCalificaciones;
+        private int operacionesComoVendedor;
+        private int operacionesComoComprador;
+
+        public Double getPromedioEstrellas() { return promedioEstrellas; }
+        public int getCantidadCalificaciones() { return cantidadCalificaciones; }
+        public int getOperacionesComoVendedor() { return operacionesComoVendedor; }
+        public int getOperacionesComoComprador() { return operacionesComoComprador; }
     }
 
 }
