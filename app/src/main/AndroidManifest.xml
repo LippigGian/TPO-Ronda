@@ -26,6 +26,9 @@
             android:name=".HomeActivity"
             android:exported="false" />
         <activity
+            android:name=".DetallePublicacionActivity"
+            android:exported="false" />
+        <activity
             android:name=".LoginActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">

@@ -32,4 +32,13 @@ public final class Formato {
                 return estado;
         }
     }
+
+    /** "2026-09-20T13:00:00.123Z" -> "20/09/2026" (sin java.time: minSdk 24). */
+    public static String fecha(String iso) {
+        if (iso == null || iso.length() < 10) {
+            return "";
+        }
+        String[] partes = iso.substring(0, 10).split("-");
+        return partes.length == 3 ? partes[2] + "/" + partes[1] + "/" + partes[0] : "";
+    }
 }

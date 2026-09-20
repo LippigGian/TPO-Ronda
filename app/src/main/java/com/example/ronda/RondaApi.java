@@ -57,6 +57,9 @@ public interface RondaApi {
             @Query("size") int tamano
     );
 
+    @GET("api/v1/publicaciones/{id}")
+    Call<ApiClient.PublicacionResponse> getPublicacion(@Path("id") long id);
+
     @GET("api/v1/publicaciones/categorias")
     Call<List<String>> getCategorias();
 
