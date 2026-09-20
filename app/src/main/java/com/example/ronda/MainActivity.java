@@ -18,11 +18,16 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         /** Botones de las publicaciones **/
+        Button btnIrAExplorar = findViewById(R.id.btnIrAExplorar);
         Button btnIrAPublicarArticulo = findViewById(R.id.btnIrAPublicarArticulo);
         Button btnIrAMisPublicaciones = findViewById(R.id.btnIrAMisPublicaciones);
 
 
         /** Listeners de publicaciones **/
+        btnIrAExplorar.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, HomeActivity.class))
+        );
+
         btnIrAPublicarArticulo.setOnClickListener(view ->
                 startActivity(new Intent(MainActivity.this, PublicarArticuloActivity.class))
         );

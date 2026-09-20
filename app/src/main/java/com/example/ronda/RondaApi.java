@@ -13,6 +13,7 @@ import retrofit2.http.DELETE;
 import okhttp3.MultipartBody;
 import retrofit2.http.Multipart;
 import retrofit2.http.Part;
+import retrofit2.http.Query;
 
 
 /**     INTERFAZ DONDE SOLO SE DECLARAN LOS METODOS HTTP **/
@@ -40,6 +41,28 @@ public interface RondaApi {
     );
 
     /** Publicaciones **/
+    /** Home: listado paginado de publicaciones activas. Los filtros nulos no se envían. **/
+    @GET("api/v1/publicaciones")
+    Call<ApiClient.PageResponse<ApiClient.PublicacionResponse>> explorarPublicaciones(
+            @Query("q") String texto,
+            @Query("categoria") String categoria,
+            @Query("precioMin") Double precioMin,
+            @Query("precioMax") Double precioMax,
+            @Query("estadoArticulo") String estadoArticulo,
+            @Query("lat") Double latitud,
+            @Query("lng") Double longitud,
+            @Query("radioKm") Double radioKm,
+            @Query("orden") String orden,
+            @Query("page") int pagina,
+            @Query("size") int tamano
+    );
+
+    @GET("api/v1/publicaciones/{id}")
+    Call<ApiClient.PublicacionResponse> getPublicacion(@Path("id") long id);
+
+    @GET("api/v1/publicaciones/categorias")
+    Call<List<String>> getCategorias();
+
     @GET("api/v1/publicaciones/mias")
     Call<List<ApiClient.PublicacionResponse>> getMisPublicaciones();
 

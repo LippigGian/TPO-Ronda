@@ -41,11 +41,43 @@ Las rutas de publicaciones requieren un JWT válido, excepto la lectura de archi
 | `GET` | `/api/v1/publicaciones/mias` | Lista las publicaciones propias, incluidas pausadas o vendidas. |
 | `PATCH` | `/api/v1/publicaciones/{id}/estado` | Cambia el estado a `ACTIVA`, `PAUSADA` o `VENDIDA`. |
 | `POST` | `/api/v1/publicaciones/{id}/fotos` | Carga de 1 a 5 fotos con `multipart/form-data`, usando la clave `fotos`. |
+| `GET` | `/api/v1/publicaciones` | Home: listado paginado de publicaciones activas con búsqueda, filtros y orden. |
+| `GET` | `/api/v1/publicaciones/{id}` | Detalle: fotos, descripción, vendedor con reputación y permiso sobre la dirección. |
+| `GET` | `/api/v1/publicaciones/categorias` | Categorías que hoy tienen publicaciones activas (para el filtro). |
 
 Al crear una publicación se envían `titulo`, `descripcion`, `categoria`, `precio`,
 `estadoArticulo` (`NUEVO`, `COMO_NUEVO` o `USADO`), `direccion`, `latitud` y `longitud`.
 Las fotos se conservan en el volumen Docker `uploads_data`, por lo que no se pierden al reiniciar
 los contenedores.
+
+### Explorar publicaciones (Home)
+
+`GET /api/v1/publicaciones` acepta estos parámetros, todos opcionales y combinables:
+
+| Parámetro | Uso |
+| --- | --- |
+| `q` | Texto libre sobre título y descripción. |
+| `categoria` | Categoría exacta (sin distinguir mayúsculas). |
+| `precioMin`, `precioMax` | Rango de precio. |
+| `estadoArticulo` | `NUEVO`, `COMO_NUEVO` o `USADO`. |
+| `lat`, `lng`, `radioKm` | Cercanía: solo publicaciones dentro del radio. Con `lat` y `lng` se informa `distanciaKm` aproximada. |
+| `orden` | `RECIENTES` (por defecto), `PRECIO_ASC` o `PRECIO_DESC`. |
+| `page`, `size` | Paginación desde 0. `size` por defecto 10 y máximo 50. |
+
+La respuesta es `{content, page, size, totalElements, totalPages, last}`. Cada item incluye la `zona` del vendedor
+pero **nunca** la dirección exacta ni las coordenadas: eso solo se ve en el detalle, con el permiso correspondiente.
+
+Los datos de `V11__seed_publicaciones_demo.sql` crean el vendedor `vendedor@ronda.com` (misma contraseña que el demo)
+con publicaciones de prueba. Las migraciones de esta feature usan `V10` y `V11` para no chocar con las de otras ramas.
+
+### Detalle de la publicación
+
+`GET /api/v1/publicaciones/{id}` devuelve el detalle completo, los datos del vendedor (`nombre`, `miembroDesde`,
+`reputacion`) y dos banderas según quién mire: `esPropia` y `direccionVisible`.
+La `direccion`, `latitud` y `longitud` exactas **solo se envían cuando `direccionVisible` es true**; si no, van en `null`.
+Hoy solo las ve el dueño. Cuando exista el módulo de ofertas (punto 7), `PublicacionService.detalle` debe marcarla
+visible también para quien tenga una oferta aceptada (hay un `TODO` en ese método). La reputación llega en cero hasta
+que existan las calificaciones (puntos 2 y 9). Las publicaciones pausadas o vendidas devuelven 404 a terceros.
 
 ## Opcion A: ejecutar todo con Docker Desktop
 
