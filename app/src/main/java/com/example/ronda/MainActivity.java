@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.ronda.favorito.MisFavoritosActivity;
 import com.example.ronda.oferta.MisOfertasActivity;
 import com.example.ronda.perfil.PerfilActivity;
 
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnIrAHistorial = findViewById(R.id.btnIrAHistorial);
         Button btnIrAMiPerfil = findViewById(R.id.btnIrAMiPerfil);
         Button btnIrAMisOfertas = findViewById(R.id.btnIrAMisOfertas);
+        Button btnIrAMisFavoritos = findViewById(R.id.btnIrAMisFavoritos);
 
 
         /** Listeners de publicaciones **/
@@ -51,6 +53,10 @@ public class MainActivity extends AppCompatActivity {
 
         btnIrAMisOfertas.setOnClickListener(view ->
                 startActivity(MisOfertasActivity.crearIntent(MainActivity.this))
+        );
+
+        btnIrAMisFavoritos.setOnClickListener(view ->
+                startActivity(MisFavoritosActivity.crearIntent(MainActivity.this))
         );
 
         btnIrAHistorial.setOnClickListener(view ->

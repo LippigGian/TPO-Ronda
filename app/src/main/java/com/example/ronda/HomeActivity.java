@@ -1,6 +1,8 @@
 package com.example.ronda;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.format.DateUtils;
@@ -24,7 +26,11 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.ronda.favorito.FavoritoAcciones;
+import com.example.ronda.favorito.FavoritoApi;
+import com.example.ronda.favorito.FavoritoModels;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -33,6 +39,7 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import retrofit2.Call;
@@ -48,6 +55,24 @@ public class HomeActivity extends AppCompatActivity {
     private static final String ORDEN_RECIENTES = "RECIENTES";
     private static final String ORDEN_PRECIO_ASC = "PRECIO_ASC";
     private static final String ORDEN_PRECIO_DESC = "PRECIO_DESC";
+
+    private static final String EXTRA_TEXTO = "texto";
+    private static final String EXTRA_CATEGORIA = "categoria";
+    private static final String EXTRA_PRECIO_MIN = "precioMin";
+    private static final String EXTRA_PRECIO_MAX = "precioMax";
+    private static final String EXTRA_ESTADO_ARTICULO = "estadoArticulo";
+
+    /** Abre el Home con los filtros de una búsqueda guardada (punto 10) ya aplicados. */
+    public static Intent crearIntentConFiltros(Context context, String texto, String categoria,
+                                               Double precioMin, Double precioMax, String estadoArticulo) {
+        Intent intent = new Intent(context, HomeActivity.class);
+        intent.putExtra(EXTRA_TEXTO, texto);
+        intent.putExtra(EXTRA_CATEGORIA, categoria);
+        if (precioMin != null) intent.putExtra(EXTRA_PRECIO_MIN, precioMin);
+        if (precioMax != null) intent.putExtra(EXTRA_PRECIO_MAX, precioMax);
+        intent.putExtra(EXTRA_ESTADO_ARTICULO, estadoArticulo);
+        return intent;
+    }
 
     private PublicacionesAdapter adapter;
     private RecyclerView rvPublicaciones;
@@ -67,6 +92,8 @@ public class HomeActivity extends AppCompatActivity {
     private ActivityResultLauncher<String> pedirPermisoUbicacion;
     private Double latitud;
     private Double longitud;
+    /** Se ejecuta cuando latitud/longitud ya están resueltas, aunque haya hecho falta pedir permiso antes. */
+    private Runnable pendienteTrasUbicacion;
 
     private String texto;
     private String orden = ORDEN_RECIENTES;
@@ -99,7 +126,7 @@ public class HomeActivity extends AppCompatActivity {
         cache = PublicacionesCacheManager.getInstance(this);
         connectivityObserver = new ConnectivityObserver(this);
 
-        adapter = new PublicacionesAdapter(this::abrirDetalle);
+        adapter = new PublicacionesAdapter(this::abrirDetalle, this::alternarFavorito);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         rvPublicaciones.setLayoutManager(layoutManager);
         rvPublicaciones.setAdapter(adapter);
@@ -114,6 +141,7 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         configurarBusqueda();
+        aplicarFiltrosDeIntent();
         btnOrden.setOnClickListener(this::mostrarMenuOrden);
         btnFiltros.setOnClickListener(v -> mostrarDialogoFiltros());
 
@@ -124,10 +152,13 @@ public class HomeActivity extends AppCompatActivity {
                         Toast.makeText(this, "Sin permiso de ubicación no podemos filtrar por cercanía",
                                 Toast.LENGTH_LONG).show();
                     }
-                    aplicarFiltros();
+                    Runnable pendiente = pendienteTrasUbicacion;
+                    pendienteTrasUbicacion = null;
+                    aplicarFiltros(pendiente);
                 });
 
         cargarCategorias();
+        cargarFavoritoIds();
         cargarDesdeCero();
     }
 
@@ -158,6 +189,30 @@ public class HomeActivity extends AppCompatActivity {
             return false;
         });
         tilBuscar.setEndIconOnClickListener(v -> buscar());
+    }
+
+    /** Si se abrió desde una búsqueda guardada (punto 10), precarga esos filtros. */
+    private void aplicarFiltrosDeIntent() {
+        Intent intent = getIntent();
+        boolean traeFiltros = intent.hasExtra(EXTRA_TEXTO) || intent.hasExtra(EXTRA_CATEGORIA)
+                || intent.hasExtra(EXTRA_PRECIO_MIN) || intent.hasExtra(EXTRA_PRECIO_MAX)
+                || intent.hasExtra(EXTRA_ESTADO_ARTICULO);
+        if (!traeFiltros) {
+            return;
+        }
+        texto = intent.getStringExtra(EXTRA_TEXTO);
+        if (texto != null) {
+            etBuscar.setText(texto);
+        }
+        filtros.categoria = intent.getStringExtra(EXTRA_CATEGORIA);
+        if (intent.hasExtra(EXTRA_PRECIO_MIN)) {
+            filtros.precioMin = intent.getDoubleExtra(EXTRA_PRECIO_MIN, 0);
+        }
+        if (intent.hasExtra(EXTRA_PRECIO_MAX)) {
+            filtros.precioMax = intent.getDoubleExtra(EXTRA_PRECIO_MAX, 0);
+        }
+        filtros.estadoArticulo = intent.getStringExtra(EXTRA_ESTADO_ARTICULO);
+        actualizarBotonFiltros();
     }
 
     private void buscar() {
@@ -217,6 +272,11 @@ public class HomeActivity extends AppCompatActivity {
         ChipGroup cgEstado = vista.findViewById(R.id.cgEstado);
         MaterialSwitch swCercania = vista.findViewById(R.id.swCercania);
         ChipGroup cgRadio = vista.findViewById(R.id.cgRadio);
+        MaterialCheckBox cbGuardarBusqueda = vista.findViewById(R.id.cbGuardarBusqueda);
+        TextInputLayout tilNombreBusqueda = vista.findViewById(R.id.tilNombreBusqueda);
+        TextInputEditText etNombreBusqueda = vista.findViewById(R.id.etNombreBusqueda);
+        cbGuardarBusqueda.setOnCheckedChangeListener((boton, marcado) ->
+                tilNombreBusqueda.setVisibility(marcado ? View.VISIBLE : View.GONE));
 
         List<String> opciones = new ArrayList<>();
         opciones.add(getString(R.string.filtro_todas));
@@ -224,13 +284,13 @@ public class HomeActivity extends AppCompatActivity {
         actvCategoria.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, opciones));
         actvCategoria.setText(filtros.categoria != null ? filtros.categoria : opciones.get(0), false);
 
-        if (filtros.precioMin != null) etPrecioMin.setText(numeroSinDecimales(filtros.precioMin));
-        if (filtros.precioMax != null) etPrecioMax.setText(numeroSinDecimales(filtros.precioMax));
-        cgEstado.check(chipDeEstado(filtros.estadoArticulo));
+        if (filtros.precioMin != null) etPrecioMin.setText(FiltrosDialogHelper.numeroSinDecimales(filtros.precioMin));
+        if (filtros.precioMax != null) etPrecioMax.setText(FiltrosDialogHelper.numeroSinDecimales(filtros.precioMax));
+        cgEstado.check(FiltrosDialogHelper.chipDeEstado(filtros.estadoArticulo));
 
         swCercania.setChecked(filtros.cercania);
         cgRadio.setVisibility(filtros.cercania ? View.VISIBLE : View.GONE);
-        cgRadio.check(chipDeRadio(filtros.radioKm));
+        cgRadio.check(FiltrosDialogHelper.chipDeRadio(filtros.radioKm));
         swCercania.setOnCheckedChangeListener((boton, marcado) ->
                 cgRadio.setVisibility(marcado ? View.VISIBLE : View.GONE));
 
@@ -240,18 +300,20 @@ public class HomeActivity extends AppCompatActivity {
                 .setPositiveButton(R.string.filtro_aplicar, (dialogo, boton) -> {
                     String elegida = actvCategoria.getText().toString();
                     filtros.categoria = categorias.contains(elegida) ? elegida : null;
-                    filtros.precioMin = leerNumero(etPrecioMin);
-                    filtros.precioMax = leerNumero(etPrecioMax);
+                    filtros.precioMin = FiltrosDialogHelper.leerNumero(etPrecioMin);
+                    filtros.precioMax = FiltrosDialogHelper.leerNumero(etPrecioMax);
                     if (filtros.precioMin != null && filtros.precioMax != null
                             && filtros.precioMin > filtros.precioMax) {
                         Double intercambio = filtros.precioMin;
                         filtros.precioMin = filtros.precioMax;
                         filtros.precioMax = intercambio;
                     }
-                    filtros.estadoArticulo = estadoDeChip(cgEstado.getCheckedChipId());
+                    filtros.estadoArticulo = FiltrosDialogHelper.estadoDeChip(cgEstado.getCheckedChipId());
                     filtros.cercania = swCercania.isChecked();
-                    filtros.radioKm = radioDeChip(cgRadio.getCheckedChipId());
-                    aplicarFiltros();
+                    filtros.radioKm = FiltrosDialogHelper.radioDeChip(cgRadio.getCheckedChipId());
+                    // La búsqueda se guarda recién cuando latitud/longitud ya están resueltas
+                    // (aplicarFiltros puede demorarse pidiendo permiso de ubicación).
+                    aplicarFiltros(() -> guardarBusquedaSiCorresponde(cbGuardarBusqueda, etNombreBusqueda));
                 })
                 .setNeutralButton(R.string.filtro_limpiar, (dialogo, boton) -> {
                     limpiarFiltros();
@@ -261,12 +323,38 @@ public class HomeActivity extends AppCompatActivity {
                 .show();
     }
 
+    /** Punto 10: si se tildó "Guardar esta búsqueda" y se cargó un nombre, la guarda con los filtros vigentes. */
+    private void guardarBusquedaSiCorresponde(MaterialCheckBox cbGuardarBusqueda,
+                                              TextInputEditText etNombreBusqueda) {
+        if (!cbGuardarBusqueda.isChecked()) {
+            return;
+        }
+        String nombre = etNombreBusqueda.getText() != null ? etNombreBusqueda.getText().toString().trim() : "";
+        if (nombre.isEmpty()) {
+            Toast.makeText(this, "Ponele un nombre a la búsqueda para guardarla", Toast.LENGTH_LONG).show();
+            return;
+        }
+        var request = new FavoritoModels.GuardarBusquedaRequest(nombre, texto, filtros.categoria,
+                filtros.precioMin, filtros.precioMax, filtros.estadoArticulo, latitud, longitud, filtros.radioKm);
+        FavoritoAcciones.guardarBusqueda(this, request, item -> { });
+    }
+
     /** Aplica los filtros elegidos; para la cercanía primero se asegura permiso y ubicación. */
     private void aplicarFiltros() {
+        aplicarFiltros(null);
+    }
+
+    /**
+     * @param alResolverUbicacion se ejecuta una vez que latitud/longitud quedaron definitivas
+     *                            (por ejemplo, para guardar una búsqueda con la ubicación correcta).
+     *                            Si hace falta pedir permiso, se guarda y se retoma cuando el usuario responde.
+     */
+    private void aplicarFiltros(Runnable alResolverUbicacion) {
         latitud = null;
         longitud = null;
         if (filtros.cercania) {
             if (!UbicacionHelper.tienePermiso(this)) {
+                pendienteTrasUbicacion = alResolverUbicacion;
                 pedirPermisoUbicacion.launch(Manifest.permission.ACCESS_COARSE_LOCATION);
                 return;
             }
@@ -281,6 +369,9 @@ public class HomeActivity extends AppCompatActivity {
             }
         }
         actualizarBotonFiltros();
+        if (alResolverUbicacion != null) {
+            alResolverUbicacion.run();
+        }
         cargarDesdeCero();
     }
 
@@ -421,45 +512,30 @@ public class HomeActivity extends AppCompatActivity {
         startActivity(DetallePublicacionActivity.crearIntent(this, publicacion.getId()));
     }
 
-    private static Double leerNumero(TextInputEditText campo) {
-        String ingresado = campo.getText() != null ? campo.getText().toString().trim() : "";
-        if (ingresado.isEmpty()) {
-            return null;
+    /** Punto 10: carga una sola vez qué publicaciones ya son favoritas, para pintar los corazones. */
+    private void cargarFavoritoIds() {
+        ApiClient.crearServicio(FavoritoApi.class).listarIdsFavoritos().enqueue(new Callback<List<Long>>() {
+            @Override
+            public void onResponse(Call<List<Long>> call, Response<List<Long>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    adapter.setFavoritoIds(new HashSet<>(response.body()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Long>> call, Throwable error) {
+                // Sin favoritos las cards se ven igual, solo sin el corazón marcado.
+            }
+        });
+    }
+
+    private void alternarFavorito(ApiClient.PublicacionResponse publicacion, boolean esFavoritoActual) {
+        long id = publicacion.getId();
+        if (esFavoritoActual) {
+            FavoritoAcciones.desmarcar(this, id, () -> adapter.marcarFavorito(id, false));
+        } else {
+            FavoritoAcciones.marcar(this, id, () -> adapter.marcarFavorito(id, true));
         }
-        try {
-            return Double.parseDouble(ingresado);
-        } catch (NumberFormatException error) {
-            return null;
-        }
     }
 
-    private static String numeroSinDecimales(double valor) {
-        return valor % 1 == 0 ? String.valueOf((long) valor) : String.valueOf(valor);
-    }
-
-    private static int chipDeEstado(String estado) {
-        if ("NUEVO".equals(estado)) return R.id.chipEstadoNuevo;
-        if ("COMO_NUEVO".equals(estado)) return R.id.chipEstadoComoNuevo;
-        if ("USADO".equals(estado)) return R.id.chipEstadoUsado;
-        return R.id.chipEstadoTodos;
-    }
-
-    private static String estadoDeChip(int chipId) {
-        if (chipId == R.id.chipEstadoNuevo) return "NUEVO";
-        if (chipId == R.id.chipEstadoComoNuevo) return "COMO_NUEVO";
-        if (chipId == R.id.chipEstadoUsado) return "USADO";
-        return null;
-    }
-
-    private static int chipDeRadio(double radioKm) {
-        if (radioKm <= 5) return R.id.chipRadio5;
-        if (radioKm >= 25) return R.id.chipRadio25;
-        return R.id.chipRadio10;
-    }
-
-    private static double radioDeChip(int chipId) {
-        if (chipId == R.id.chipRadio5) return 5.0;
-        if (chipId == R.id.chipRadio25) return 25.0;
-        return FiltrosHome.RADIO_KM_POR_DEFECTO;
-    }
 }

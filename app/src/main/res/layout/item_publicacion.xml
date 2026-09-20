@@ -16,13 +16,29 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/ivFotoPublicacion"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="170dp"
-            android:background="@color/ronda_outline"
-            android:contentDescription="@string/foto_publicacion"
-            android:scaleType="centerCrop" />
+            android:layout_height="170dp">
+
+            <ImageView
+                android:id="@+id/ivFotoPublicacion"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/ronda_outline"
+                android:contentDescription="@string/foto_publicacion"
+                android:scaleType="centerCrop" />
+
+            <ImageButton
+                android:id="@+id/btnFavoritoPublicacion"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_boton_favorito"
+                android:contentDescription="@string/detalle_guardar"
+                android:padding="8dp"
+                android:src="@drawable/ic_favorito_borde" />
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

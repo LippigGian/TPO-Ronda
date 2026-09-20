@@ -295,6 +295,8 @@
                             android:textAllCaps="false"
                             android:textColor="@color/ronda_primary"
                             app:cornerRadius="12dp"
+                            app:icon="@drawable/ic_favorito_borde"
+                            app:iconGravity="textStart"
                             app:strokeColor="@color/ronda_outline" />
                     </LinearLayout>
 

@@ -153,5 +153,27 @@
                 android:layout_height="wrap_content"
                 android:text="25 km" />
         </com.google.android.material.chip.ChipGroup>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbGuardarBusqueda"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/filtro_guardar_busqueda" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNombreBusqueda"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:hint="@string/filtro_nombre_busqueda"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNombreBusqueda"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 </ScrollView>
