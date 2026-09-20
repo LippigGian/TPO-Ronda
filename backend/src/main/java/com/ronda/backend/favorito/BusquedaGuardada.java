@@ -59,14 +59,7 @@ public class BusquedaGuardada {
     public BusquedaGuardada(Usuario usuario, String nombre, ExplorarFiltros filtros) {
         this.usuario = usuario;
         this.nombre = nombre;
-        this.texto = filtros.q();
-        this.categoria = filtros.categoria();
-        this.precioMin = filtros.precioMin();
-        this.precioMax = filtros.precioMax();
-        this.estadoArticulo = filtros.estadoArticulo();
-        this.latitud = filtros.lat() == null ? null : BigDecimal.valueOf(filtros.lat());
-        this.longitud = filtros.lng() == null ? null : BigDecimal.valueOf(filtros.lng());
-        this.radioKm = filtros.radioKm() == null ? null : BigDecimal.valueOf(filtros.radioKm());
+        aplicarFiltros(filtros);
     }
 
     public Long getId() { return id; }
@@ -74,6 +67,11 @@ public class BusquedaGuardada {
     public String getNombre() { return nombre; }
     public Instant getUltimaRevisionAt() { return ultimaRevisionAt; }
     public Instant getCreatedAt() { return createdAt; }
+
+    /** true si esta búsqueda filtra por cercanía (el radio solo se usa cuando hay coordenadas). */
+    public boolean isCercania() {
+        return latitud != null && longitud != null;
+    }
 
     /** Reconstruye los filtros originales para volver a ejecutar la búsqueda. */
     public ExplorarFiltros aFiltros() {
@@ -86,5 +84,27 @@ public class BusquedaGuardada {
     /** Limpia el indicador de novedades: desde ahora solo cuentan publicaciones futuras. */
     public void marcarVista() {
         this.ultimaRevisionAt = Instant.now();
+    }
+
+    /**
+     * Actualiza el nombre y los filtros de una búsqueda ya guardada, sin crear una nueva.
+     * Reinicia el indicador de novedades: al cambiar los filtros, el conjunto de resultados
+     * cambia y ya no tiene sentido compararlo contra la última revisión de los filtros viejos.
+     */
+    public void actualizar(String nombre, ExplorarFiltros filtros) {
+        this.nombre = nombre;
+        aplicarFiltros(filtros);
+        marcarVista();
+    }
+
+    private void aplicarFiltros(ExplorarFiltros filtros) {
+        this.texto = filtros.q();
+        this.categoria = filtros.categoria();
+        this.precioMin = filtros.precioMin();
+        this.precioMax = filtros.precioMax();
+        this.estadoArticulo = filtros.estadoArticulo();
+        this.latitud = filtros.lat() == null ? null : BigDecimal.valueOf(filtros.lat());
+        this.longitud = filtros.lng() == null ? null : BigDecimal.valueOf(filtros.lng());
+        this.radioKm = filtros.radioKm() == null ? null : BigDecimal.valueOf(filtros.radioKm());
     }
 }

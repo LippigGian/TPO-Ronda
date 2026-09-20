@@ -14,6 +14,7 @@ import java.util.List;
 final class BusquedaGuardadaItemBinder {
 
     interface Acciones {
+        void editar(FavoritoModels.BusquedaGuardadaItem busqueda);
         void eliminar(FavoritoModels.BusquedaGuardadaItem busqueda);
         void verResultados(FavoritoModels.BusquedaGuardadaItem busqueda);
     }
@@ -34,6 +35,7 @@ final class BusquedaGuardadaItemBinder {
             tvNovedad.setVisibility(View.GONE);
         }
 
+        fila.findViewById(R.id.btnEditarBusqueda).setOnClickListener(v -> acciones.editar(busqueda));
         fila.findViewById(R.id.btnEliminarBusqueda).setOnClickListener(v -> acciones.eliminar(busqueda));
         fila.setOnClickListener(v -> acciones.verResultados(busqueda));
     }

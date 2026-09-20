@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -33,6 +34,12 @@ public class BusquedaGuardadaController {
     @GetMapping
     public List<BusquedaGuardadaDtos.Item> listar(@AuthenticationPrincipal UserDetails user) {
         return service.listar(user.getUsername());
+    }
+
+    @PutMapping("/{id}")
+    public BusquedaGuardadaDtos.Item actualizar(@AuthenticationPrincipal UserDetails user, @PathVariable Long id,
+                                                 @Valid @RequestBody BusquedaGuardadaDtos.CrearRequest request) {
+        return service.actualizar(user.getUsername(), id, request);
     }
 
     @PostMapping("/{id}/marcar-vista")

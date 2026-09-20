@@ -22,13 +22,13 @@ public final class BusquedaGuardadaDtos {
             Double radioKm) { }
 
     public record Item(Long id, String nombre, String q, String categoria, BigDecimal precioMin,
-                       BigDecimal precioMax, EstadoArticulo estadoArticulo, Double radioKm,
+                       BigDecimal precioMax, EstadoArticulo estadoArticulo, boolean cercania, Double radioKm,
                        long cantidadNuevas, Instant createdAt) {
         static Item from(BusquedaGuardada busqueda, long cantidadNuevas) {
             var filtros = busqueda.aFiltros();
             return new Item(busqueda.getId(), busqueda.getNombre(), filtros.q(), filtros.categoria(),
-                    filtros.precioMin(), filtros.precioMax(), filtros.estadoArticulo(), filtros.radioKm(),
-                    cantidadNuevas, busqueda.getCreatedAt());
+                    filtros.precioMin(), filtros.precioMax(), filtros.estadoArticulo(), busqueda.isCercania(),
+                    filtros.radioKm(), cantidadNuevas, busqueda.getCreatedAt());
         }
     }
 }

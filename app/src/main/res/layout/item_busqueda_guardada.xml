@@ -36,6 +36,15 @@
                 android:textStyle="bold" />
 
             <ImageButton
+                android:id="@+id/btnEditarBusqueda"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Editar búsqueda guardada"
+                android:padding="6dp"
+                android:src="@android:drawable/ic_menu_edit" />
+
+            <ImageButton
                 android:id="@+id/btnEliminarBusqueda"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

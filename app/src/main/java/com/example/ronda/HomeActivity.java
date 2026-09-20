@@ -284,13 +284,13 @@ public class HomeActivity extends AppCompatActivity {
         actvCategoria.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, opciones));
         actvCategoria.setText(filtros.categoria != null ? filtros.categoria : opciones.get(0), false);
 
-        if (filtros.precioMin != null) etPrecioMin.setText(numeroSinDecimales(filtros.precioMin));
-        if (filtros.precioMax != null) etPrecioMax.setText(numeroSinDecimales(filtros.precioMax));
-        cgEstado.check(chipDeEstado(filtros.estadoArticulo));
+        if (filtros.precioMin != null) etPrecioMin.setText(FiltrosDialogHelper.numeroSinDecimales(filtros.precioMin));
+        if (filtros.precioMax != null) etPrecioMax.setText(FiltrosDialogHelper.numeroSinDecimales(filtros.precioMax));
+        cgEstado.check(FiltrosDialogHelper.chipDeEstado(filtros.estadoArticulo));
 
         swCercania.setChecked(filtros.cercania);
         cgRadio.setVisibility(filtros.cercania ? View.VISIBLE : View.GONE);
-        cgRadio.check(chipDeRadio(filtros.radioKm));
+        cgRadio.check(FiltrosDialogHelper.chipDeRadio(filtros.radioKm));
         swCercania.setOnCheckedChangeListener((boton, marcado) ->
                 cgRadio.setVisibility(marcado ? View.VISIBLE : View.GONE));
 
@@ -300,17 +300,17 @@ public class HomeActivity extends AppCompatActivity {
                 .setPositiveButton(R.string.filtro_aplicar, (dialogo, boton) -> {
                     String elegida = actvCategoria.getText().toString();
                     filtros.categoria = categorias.contains(elegida) ? elegida : null;
-                    filtros.precioMin = leerNumero(etPrecioMin);
-                    filtros.precioMax = leerNumero(etPrecioMax);
+                    filtros.precioMin = FiltrosDialogHelper.leerNumero(etPrecioMin);
+                    filtros.precioMax = FiltrosDialogHelper.leerNumero(etPrecioMax);
                     if (filtros.precioMin != null && filtros.precioMax != null
                             && filtros.precioMin > filtros.precioMax) {
                         Double intercambio = filtros.precioMin;
                         filtros.precioMin = filtros.precioMax;
                         filtros.precioMax = intercambio;
                     }
-                    filtros.estadoArticulo = estadoDeChip(cgEstado.getCheckedChipId());
+                    filtros.estadoArticulo = FiltrosDialogHelper.estadoDeChip(cgEstado.getCheckedChipId());
                     filtros.cercania = swCercania.isChecked();
-                    filtros.radioKm = radioDeChip(cgRadio.getCheckedChipId());
+                    filtros.radioKm = FiltrosDialogHelper.radioDeChip(cgRadio.getCheckedChipId());
                     // La búsqueda se guarda recién cuando latitud/longitud ya están resueltas
                     // (aplicarFiltros puede demorarse pidiendo permiso de ubicación).
                     aplicarFiltros(() -> guardarBusquedaSiCorresponde(cbGuardarBusqueda, etNombreBusqueda));
@@ -538,45 +538,4 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    private static Double leerNumero(TextInputEditText campo) {
-        String ingresado = campo.getText() != null ? campo.getText().toString().trim() : "";
-        if (ingresado.isEmpty()) {
-            return null;
-        }
-        try {
-            return Double.parseDouble(ingresado);
-        } catch (NumberFormatException error) {
-            return null;
-        }
-    }
-
-    private static String numeroSinDecimales(double valor) {
-        return valor % 1 == 0 ? String.valueOf((long) valor) : String.valueOf(valor);
-    }
-
-    private static int chipDeEstado(String estado) {
-        if ("NUEVO".equals(estado)) return R.id.chipEstadoNuevo;
-        if ("COMO_NUEVO".equals(estado)) return R.id.chipEstadoComoNuevo;
-        if ("USADO".equals(estado)) return R.id.chipEstadoUsado;
-        return R.id.chipEstadoTodos;
-    }
-
-    private static String estadoDeChip(int chipId) {
-        if (chipId == R.id.chipEstadoNuevo) return "NUEVO";
-        if (chipId == R.id.chipEstadoComoNuevo) return "COMO_NUEVO";
-        if (chipId == R.id.chipEstadoUsado) return "USADO";
-        return null;
-    }
-
-    private static int chipDeRadio(double radioKm) {
-        if (radioKm <= 5) return R.id.chipRadio5;
-        if (radioKm >= 25) return R.id.chipRadio25;
-        return R.id.chipRadio10;
-    }
-
-    private static double radioDeChip(int chipId) {
-        if (chipId == R.id.chipRadio5) return 5.0;
-        if (chipId == R.id.chipRadio25) return 25.0;
-        return FiltrosHome.RADIO_KM_POR_DEFECTO;
-    }
 }

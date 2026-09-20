@@ -26,10 +26,17 @@ public class BusquedaGuardadaService {
     @Transactional
     public BusquedaGuardadaDtos.Item guardar(String email, BusquedaGuardadaDtos.CrearRequest request) {
         Usuario usuario = findUser(email);
-        var filtros = new ExplorarFiltros(request.q(), request.categoria(), request.precioMin(),
-                request.precioMax(), request.estadoArticulo(), request.lat(), request.lng(), request.radioKm());
-        BusquedaGuardada guardada = busquedas.save(new BusquedaGuardada(usuario, request.nombre().trim(), filtros));
+        BusquedaGuardada guardada = busquedas.save(
+                new BusquedaGuardada(usuario, request.nombre().trim(), aFiltros(request)));
         return BusquedaGuardadaDtos.Item.from(guardada, 0);
+    }
+
+    /** Modifica los filtros (y opcionalmente el nombre) de una búsqueda ya guardada, sin duplicarla. */
+    @Transactional
+    public BusquedaGuardadaDtos.Item actualizar(String email, Long id, BusquedaGuardadaDtos.CrearRequest request) {
+        BusquedaGuardada busqueda = buscarPropia(email, id);
+        busqueda.actualizar(request.nombre().trim(), aFiltros(request));
+        return BusquedaGuardadaDtos.Item.from(busqueda, 0);
     }
 
     @Transactional(readOnly = true)
@@ -49,6 +56,11 @@ public class BusquedaGuardadaService {
     @Transactional
     public void eliminar(String email, Long id) {
         busquedas.delete(buscarPropia(email, id));
+    }
+
+    private static ExplorarFiltros aFiltros(BusquedaGuardadaDtos.CrearRequest request) {
+        return new ExplorarFiltros(request.q(), request.categoria(), request.precioMin(),
+                request.precioMax(), request.estadoArticulo(), request.lat(), request.lng(), request.radioKm());
     }
 
     private BusquedaGuardada buscarPropia(String email, Long id) {

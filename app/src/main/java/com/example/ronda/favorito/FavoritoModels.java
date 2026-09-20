@@ -63,6 +63,7 @@ public final class FavoritoModels {
         private Double precioMin;
         private Double precioMax;
         private String estadoArticulo;
+        private boolean cercania;
         private Double radioKm;
         private long cantidadNuevas;
         private String createdAt;
@@ -74,6 +75,8 @@ public final class FavoritoModels {
         public Double getPrecioMin() { return precioMin; }
         public Double getPrecioMax() { return precioMax; }
         public String getEstadoArticulo() { return estadoArticulo; }
+        /** true si la búsqueda filtra por cercanía (tenía coordenadas al guardarla). */
+        public boolean isCercania() { return cercania; }
         public Double getRadioKm() { return radioKm; }
         /** Publicaciones nuevas desde la última vez que se abrió esta búsqueda: el indicador de novedad. */
         public long getCantidadNuevas() { return cantidadNuevas; }

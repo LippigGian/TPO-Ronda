@@ -46,6 +46,19 @@ public final class FavoritoAcciones {
                 });
     }
 
+    /** Modifica los filtros de una búsqueda ya guardada, sin crear una nueva ni perder el nombre. */
+    public static void actualizarBusqueda(Activity activity, long id, FavoritoModels.GuardarBusquedaRequest request,
+                                          AlGuardarBusqueda alTerminar) {
+        api().actualizarBusqueda(id, request).enqueue(
+                new ApiCallback<FavoritoModels.BusquedaGuardadaItem>(activity, "No se pudo actualizar la búsqueda") {
+                    @Override
+                    protected void onExito(FavoritoModels.BusquedaGuardadaItem respuesta) {
+                        Toast.makeText(activity, "Búsqueda actualizada", Toast.LENGTH_SHORT).show();
+                        alTerminar.onGuardada(respuesta);
+                    }
+                });
+    }
+
     public static void eliminarBusqueda(Activity activity, long id, AlTerminar alTerminar) {
         api().eliminarBusqueda(id)
                 .enqueue(callback(activity, "No se pudo eliminar la búsqueda guardada", alTerminar));

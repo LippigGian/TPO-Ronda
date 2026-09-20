@@ -7,6 +7,7 @@ import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 /** Endpoints del punto 10. Se obtiene con ApiClient.crearServicio(FavoritoApi.class). */
@@ -29,6 +30,10 @@ public interface FavoritoApi {
 
     @POST("api/v1/busquedas-guardadas")
     Call<FavoritoModels.BusquedaGuardadaItem> guardarBusqueda(@Body FavoritoModels.GuardarBusquedaRequest request);
+
+    @PUT("api/v1/busquedas-guardadas/{id}")
+    Call<FavoritoModels.BusquedaGuardadaItem> actualizarBusqueda(@Path("id") long id,
+            @Body FavoritoModels.GuardarBusquedaRequest request);
 
     @GET("api/v1/busquedas-guardadas")
     Call<List<FavoritoModels.BusquedaGuardadaItem>> listarBusquedas();
