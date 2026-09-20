@@ -1,5 +1,7 @@
 package com.ronda.backend.perfil;
 
+import com.ronda.backend.oferta.EstadoOferta;
+import com.ronda.backend.oferta.OfertaRepository;
 import com.ronda.backend.publicacion.EstadoPublicacion;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,16 +12,17 @@ import org.springframework.transaction.annotation.Transactional;
  * Se llama ReputacionPerfilService (y no ReputacionService) para no chocar con el bean
  * homonimo de la feature de calificaciones (punto 9): Spring no admite dos beans con el
  * mismo nombre y el backend no arrancaria al mergear ambas ramas.
- * Cuando existan las features de calificaciones (punto 9) y ofertas (punto 7),
- * solo hay que cambiar esta clase: los controladores y las pantallas ya consumen
- * el record Reputacion y no se enteran del cambio.
+ * Cuando se integre la feature de calificaciones (punto 9), solo hay que cambiar esta
+ * clase: los controladores y las pantallas ya consumen el record Reputacion.
  */
 @Service
 public class ReputacionPerfilService {
     private final PerfilPublicacionRepository publicaciones;
+    private final OfertaRepository ofertas;
 
-    public ReputacionPerfilService(PerfilPublicacionRepository publicaciones) {
+    public ReputacionPerfilService(PerfilPublicacionRepository publicaciones, OfertaRepository ofertas) {
         this.publicaciones = publicaciones;
+        this.ofertas = ofertas;
     }
 
     @Transactional(readOnly = true)
@@ -31,8 +34,9 @@ public class ReputacionPerfilService {
         Double promedioEstrellas = null;
         long cantidadCalificaciones = 0;
 
-        // TODO punto 7: compras concretadas a partir de las ofertas aceptadas como comprador.
-        long compras = 0;
+        // Compras: ofertas aceptadas como comprador sobre publicaciones que ya se vendieron.
+        long compras = ofertas.countByCompradorIdAndEstadoAndPublicacionEstadoPublicacion(usuarioId,
+                EstadoOferta.ACEPTADA, EstadoPublicacion.VENDIDA);
 
         return new PerfilDtos.Reputacion(promedioEstrellas, cantidadCalificaciones, ventas, compras);
     }

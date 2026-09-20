@@ -68,6 +68,9 @@
         <activity
             android:name=".PuntoEntregaActivity"
             android:exported="false" />
+        <activity
+            android:name=".oferta.MisOfertasActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

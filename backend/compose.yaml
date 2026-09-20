@@ -25,6 +25,7 @@ services:
       MAIL_PORT: 1025
       JWT_EXPIRATION_SECONDS: ${JWT_EXPIRATION_SECONDS:-3600}
       UPLOAD_DIR: /app/uploads
+      OFERTAS_VIGENCIA_MINUTOS: ${OFERTAS_VIGENCIA_MINUTOS:-2880}
     ports:
       - "${SERVER_PORT:-8080}:8080"
     volumes:

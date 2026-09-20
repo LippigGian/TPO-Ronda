@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Colores de los estados de una oferta (texto y fondo del chip). Archivo propio para no editar colors.xml. -->
+<resources>
+    <color name="oferta_pendiente">#B45309</color>
+    <color name="oferta_pendiente_fondo">#FEF3C7</color>
+    <color name="oferta_aceptada">#15803D</color>
+    <color name="oferta_aceptada_fondo">#DCFCE7</color>
+    <color name="oferta_rechazada">#B91C1C</color>
+    <color name="oferta_rechazada_fondo">#FEE2E2</color>
+    <color name="oferta_vencida">#4B5563</color>
+    <color name="oferta_vencida_fondo">#F3F4F6</color>
+</resources>

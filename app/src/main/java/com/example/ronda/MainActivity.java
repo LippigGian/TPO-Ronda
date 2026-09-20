@@ -10,6 +10,7 @@ import androidx.core.view.WindowInsetsCompat;
 import android.content.Intent;
 import android.widget.Button;
 
+import com.example.ronda.oferta.MisOfertasActivity;
 import com.example.ronda.perfil.PerfilActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnIrAPublicarArticulo = findViewById(R.id.btnIrAPublicarArticulo);
         Button btnIrAMisPublicaciones = findViewById(R.id.btnIrAMisPublicaciones);
         Button btnIrAMiPerfil = findViewById(R.id.btnIrAMiPerfil);
+        Button btnIrAMisOfertas = findViewById(R.id.btnIrAMisOfertas);
 
 
         /** Listeners de publicaciones **/
@@ -43,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
 
         btnIrAMiPerfil.setOnClickListener(view ->
                 startActivity(new Intent(MainActivity.this, PerfilActivity.class))
+        );
+
+        btnIrAMisOfertas.setOnClickListener(view ->
+                startActivity(MisOfertasActivity.crearIntent(MainActivity.this))
         );
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {

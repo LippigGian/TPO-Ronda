@@ -54,6 +54,11 @@ management:
     health:
       show-details: never
 app:
+  ofertas:
+    # Plazo de vigencia de cada oferta/contraoferta. 2880 minutos = 48 horas.
+    vigencia-minutos: ${OFERTAS_VIGENCIA_MINUTOS:2880}
+    # Cada cuanto se revisan las ofertas vencidas (milisegundos).
+    revision-vencimiento-ms: ${OFERTAS_REVISION_MS:60000}
   storage:
     upload-dir: ${UPLOAD_DIR:./uploads}
   otp:
