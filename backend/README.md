@@ -42,6 +42,7 @@ Las rutas de publicaciones requieren un JWT válido, excepto la lectura de archi
 | `PATCH` | `/api/v1/publicaciones/{id}/estado` | Cambia el estado a `ACTIVA`, `PAUSADA` o `VENDIDA`. |
 | `POST` | `/api/v1/publicaciones/{id}/fotos` | Carga de 1 a 5 fotos con `multipart/form-data`, usando la clave `fotos`. |
 | `GET` | `/api/v1/publicaciones` | Home: listado paginado de publicaciones activas con búsqueda, filtros y orden. |
+| `GET` | `/api/v1/publicaciones/{id}` | Detalle: fotos, descripción, vendedor con reputación y permiso sobre la dirección. |
 | `GET` | `/api/v1/publicaciones/categorias` | Categorías que hoy tienen publicaciones activas (para el filtro). |
 
 Al crear una publicación se envían `titulo`, `descripcion`, `categoria`, `precio`,
@@ -68,6 +69,15 @@ pero **nunca** la dirección exacta ni las coordenadas: eso solo se ve en el det
 
 Los datos de `V11__seed_publicaciones_demo.sql` crean el vendedor `vendedor@ronda.com` (misma contraseña que el demo)
 con publicaciones de prueba. Las migraciones de esta feature usan `V10` y `V11` para no chocar con las de otras ramas.
+
+### Detalle de la publicación
+
+`GET /api/v1/publicaciones/{id}` devuelve el detalle completo, los datos del vendedor (`nombre`, `miembroDesde`,
+`reputacion`) y dos banderas según quién mire: `esPropia` y `direccionVisible`.
+La `direccion`, `latitud` y `longitud` exactas **solo se envían cuando `direccionVisible` es true**; si no, van en `null`.
+Hoy solo las ve el dueño. Cuando exista el módulo de ofertas (punto 7), `PublicacionService.detalle` debe marcarla
+visible también para quien tenga una oferta aceptada (hay un `TODO` en ese método). La reputación llega en cero hasta
+que existan las calificaciones (puntos 2 y 9). Las publicaciones pausadas o vendidas devuelven 404 a terceros.
 
 ## Opcion A: ejecutar todo con Docker Desktop
 
