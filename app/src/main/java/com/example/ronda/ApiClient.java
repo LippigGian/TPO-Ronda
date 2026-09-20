@@ -194,6 +194,23 @@ public final class ApiClient {
         private double latitud;
         private double longitud;
         private List<String> fotos;
+        // Campos que completa el listado público (Home): zona aproximada y distancia al usuario.
+        private String zona;
+        private String createdAt;
+        private Integer distanciaKm;
+
+        public String getZona() {
+            return zona;
+        }
+
+        public String getCreatedAt() {
+            return createdAt;
+        }
+
+        /** Distancia aproximada en km al usuario; null si el listado no se pidió con ubicación. */
+        public Integer getDistanciaKm() {
+            return distanciaKm;
+        }
 
         public long getId() {
             return id;
@@ -238,6 +255,23 @@ public final class ApiClient {
         public List<String> getFotos() {
             return fotos;
         }
+    }
+
+    /** Página de resultados del backend (content + datos de paginación). */
+    public static final class PageResponse<T> {
+        private List<T> content;
+        private int page;
+        private int size;
+        private long totalElements;
+        private int totalPages;
+        private boolean last;
+
+        public List<T> getContent() { return content; }
+        public int getPage() { return page; }
+        public int getSize() { return size; }
+        public long getTotalElements() { return totalElements; }
+        public int getTotalPages() { return totalPages; }
+        public boolean isLast() { return last; }
     }
 
 }
