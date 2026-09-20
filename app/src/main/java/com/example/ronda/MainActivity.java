@@ -10,6 +10,8 @@ import androidx.core.view.WindowInsetsCompat;
 import android.content.Intent;
 import android.widget.Button;
 
+import com.example.ronda.perfil.PerfilActivity;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -21,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnIrAExplorar = findViewById(R.id.btnIrAExplorar);
         Button btnIrAPublicarArticulo = findViewById(R.id.btnIrAPublicarArticulo);
         Button btnIrAMisPublicaciones = findViewById(R.id.btnIrAMisPublicaciones);
+        Button btnIrAMiPerfil = findViewById(R.id.btnIrAMiPerfil);
 
 
         /** Listeners de publicaciones **/
@@ -36,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(
                         new Intent(MainActivity.this, MisPublicacionesActivity.class)
                 )
+        );
+
+        btnIrAMiPerfil.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, PerfilActivity.class))
         );
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {

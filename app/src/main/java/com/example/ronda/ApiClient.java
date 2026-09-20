@@ -17,6 +17,7 @@ public final class ApiClient {
 
     /** Preparo Retrofti para utilizar la ainterfaz RondaApi **/
     private static RondaApi api;
+    private static Retrofit retrofit;
     private static SessionManager sessionManager;
 
     private ApiClient() { }
@@ -45,12 +46,25 @@ public final class ApiClient {
                 })
                 .build();
 
-        api = new Retrofit.Builder()
+        retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(httpClient)
                 .addConverterFactory(GsonConverterFactory.create())
-                .build()
-                .create(RondaApi.class);
+                .build();
+        api = retrofit.create(RondaApi.class);
+    }
+
+    /**
+     * Crea la implementacion de cualquier interfaz Retrofit (ej: PerfilApi.class)
+     * reutilizando la misma configuracion: URL base, token JWT y Gson.
+     * Permite que cada feature tenga su propia interfaz sin tocar RondaApi.
+     */
+    public static <T> T crearServicio(Class<T> servicio) {
+        if (retrofit == null) {
+            throw new IllegalStateException("ApiClient no fue inicializado");
+        }
+
+        return retrofit.create(servicio);
     }
 
     public static RondaApi api() {

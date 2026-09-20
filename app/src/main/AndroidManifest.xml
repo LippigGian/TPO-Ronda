@@ -59,6 +59,13 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
+            android:name=".perfil.PerfilActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".perfil.PerfilPublicoActivity"
+            android:exported="false" />
+        <activity
             android:name=".PuntoEntregaActivity"
             android:exported="false" />
     </application>
