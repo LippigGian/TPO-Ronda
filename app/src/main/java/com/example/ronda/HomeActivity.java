@@ -3,6 +3,7 @@ package com.example.ronda;
 import android.Manifest;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -55,6 +56,11 @@ public class HomeActivity extends AppCompatActivity {
     private MaterialButton btnOrden;
     private MaterialButton btnFiltros;
     private TextInputEditText etBuscar;
+    private TextView tvAvisoOffline;
+    private ConnectivityObserver connectivityObserver;
+    private PublicacionesCacheManager cache;
+    /** true mientras el listado que se ve viene del cache y no del servidor. */
+    private boolean mostrandoCache = false;
 
     private final FiltrosHome filtros = new FiltrosHome();
     private final List<String> categorias = new ArrayList<>();
@@ -89,6 +95,9 @@ public class HomeActivity extends AppCompatActivity {
         btnOrden = findViewById(R.id.btnOrden);
         btnFiltros = findViewById(R.id.btnFiltros);
         etBuscar = findViewById(R.id.etBuscar);
+        tvAvisoOffline = findViewById(R.id.tvAvisoOffline);
+        cache = PublicacionesCacheManager.getInstance(this);
+        connectivityObserver = new ConnectivityObserver(this);
 
         adapter = new PublicacionesAdapter(this::abrirDetalle);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -120,6 +129,23 @@ public class HomeActivity extends AppCompatActivity {
 
         cargarCategorias();
         cargarDesdeCero();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        connectivityObserver.start(online -> {
+            // Al volver la conexión se reemplaza lo guardado por los datos más recientes del servidor.
+            if (online && mostrandoCache) {
+                runOnUiThread(this::cargarDesdeCero);
+            }
+        });
+    }
+
+    @Override
+    protected void onStop() {
+        connectivityObserver.stop();
+        super.onStop();
     }
 
     private void configurarBusqueda() {
@@ -289,8 +315,12 @@ public class HomeActivity extends AppCompatActivity {
         if (cargando || ultimaPagina) {
             return;
         }
-        cargando = true;
         int paginaPedida = paginaActual + 1;
+        if (paginaPedida == 0 && !ConnectivityObserver.isOnline(this)) {
+            mostrarDesdeCache();
+            return;
+        }
+        cargando = true;
         int generacionPedida = generacion;
         progreso.setVisibility(View.VISIBLE);
 
@@ -332,6 +362,10 @@ public class HomeActivity extends AppCompatActivity {
                 }
                 cargando = false;
                 progreso.setVisibility(View.GONE);
+                if (paginaPedida == 0) {
+                    mostrarDesdeCache();
+                    return;
+                }
                 Toast.makeText(HomeActivity.this, "No se pudo conectar con el servidor",
                         Toast.LENGTH_LONG).show();
             }
@@ -342,13 +376,45 @@ public class HomeActivity extends AppCompatActivity {
         List<ApiClient.PublicacionResponse> contenido = pagina.getContent();
         paginaActual = numero;
         ultimaPagina = pagina.isLast();
+        ocultarAvisoOffline();
 
         if (numero == 0) {
             adapter.reemplazar(contenido);
+            // Solo se guarda el listado "puro" (sin búsqueda ni filtros) como copia para uso sin conexión.
+            if (texto == null && !filtros.hayFiltrosActivos() && ORDEN_RECIENTES.equals(orden)) {
+                cache.guardarHome(contenido);
+            }
         } else {
             adapter.agregar(contenido);
         }
         tvSinResultados.setVisibility(adapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+    }
+
+    /** Sin conexión: se muestran las últimas publicaciones cargadas con éxito y se avisa que pueden estar viejas. */
+    private void mostrarDesdeCache() {
+        int generacionPedida = generacion;
+        cache.leerHome(guardado -> runOnUiThread(() -> {
+            if (generacionPedida != generacion) {
+                return;
+            }
+            progreso.setVisibility(View.GONE);
+            mostrandoCache = true;
+            ultimaPagina = true;
+            paginaActual = 0;
+            adapter.reemplazar(guardado.publicaciones);
+            tvSinResultados.setVisibility(guardado.publicaciones.isEmpty() ? View.VISIBLE : View.GONE);
+
+            String actualizado = guardado.timestamp > 0
+                    ? " Última actualización: " + DateUtils.getRelativeTimeSpanString(guardado.timestamp) + "."
+                    : "";
+            tvAvisoOffline.setText(getString(R.string.home_aviso_offline) + actualizado);
+            tvAvisoOffline.setVisibility(View.VISIBLE);
+        }));
+    }
+
+    private void ocultarAvisoOffline() {
+        mostrandoCache = false;
+        tvAvisoOffline.setVisibility(View.GONE);
     }
 
     private void abrirDetalle(ApiClient.PublicacionResponse publicacion) {

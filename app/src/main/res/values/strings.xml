@@ -18,6 +18,7 @@
     <string name="home_buscar_hint">Buscar por título o descripción</string>
     <string name="home_filtros">Filtros</string>
     <string name="home_sin_resultados">No encontramos publicaciones con esos criterios.</string>
+    <string name="home_aviso_offline">Sin conexión: te mostramos las últimas publicaciones guardadas. La información podría no estar actualizada.</string>
     <string name="filtros_titulo">Filtros</string>
     <string name="filtro_aplicar">Aplicar</string>
     <string name="filtro_limpiar">Limpiar</string>
