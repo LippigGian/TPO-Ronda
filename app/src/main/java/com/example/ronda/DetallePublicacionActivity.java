@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.button.MaterialButton;
+import com.example.ronda.oferta.OfertaAcciones;
 import com.example.ronda.perfil.PerfilPublicoActivity;
 
 import java.util.Collections;
@@ -258,7 +259,7 @@ public class DetallePublicacionActivity extends AppCompatActivity {
         tvRequiereConexion.setVisibility(online ? View.GONE : View.VISIBLE);
 
         // Cada acción se conecta con su módulo: ofertas (punto 7) y favoritos (punto 10).
-        btnOfertar.setOnClickListener(v -> proximamente("Las ofertas"));
+        btnOfertar.setOnClickListener(v -> OfertaAcciones.ofertar(this, p.getId(), p.getPrecio()));
         btnPreguntar.setOnClickListener(v -> proximamente("Las preguntas"));
         btnGuardar.setOnClickListener(v -> proximamente("Los favoritos"));
     }

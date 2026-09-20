@@ -79,6 +79,30 @@ Hoy solo las ve el dueño. Cuando exista el módulo de ofertas (punto 7), `Publi
 visible también para quien tenga una oferta aceptada (hay un `TODO` en ese método). La reputación llega en cero hasta
 que existan las calificaciones (puntos 2 y 9). Las publicaciones pausadas o vendidas devuelven 404 a terceros.
 
+## Ofertas y negociación
+
+Una oferta es una negociación entre un comprador y el vendedor de una publicación. El campo `precio`
+es siempre la última propuesta y `turno` indica quién tiene que responder: quien tiene el turno puede
+aceptar, rechazar o contraofertar. Cada contraoferta le pasa el turno a la otra parte y renueva el plazo.
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| `POST` | `/api/v1/publicaciones/{id}/ofertas` | Oferta inicial del comprador: `precio` (distinto al publicado) y `mensaje` opcional. |
+| `GET` | `/api/v1/ofertas/mias` | "Mis ofertas": `enviadas`, `recibidas` y `pendientesDeMiRespuesta`. |
+| `GET` | `/api/v1/ofertas/{id}` | Una oferta, solo para sus participantes. |
+| `POST` | `/api/v1/ofertas/{id}/aceptar` | Acepta. Rechaza automáticamente las demás pendientes de la publicación. |
+| `POST` | `/api/v1/ofertas/{id}/rechazar` | Rechaza. |
+| `POST` | `/api/v1/ofertas/{id}/contraofertar` | Nueva propuesta: `precio` y `mensaje` opcional. |
+
+- Estados: `PENDIENTE`, `ACEPTADA`, `RECHAZADA` y `VENCIDA`. Solo `PENDIENTE` admite respuestas.
+- Vencimiento: pasado `vence_at`, la oferta caduca sola. Un job revisa cada minuto y además cada
+  endpoint de ofertas vence las expiradas antes de responder. El plazo se configura con
+  `OFERTAS_VIGENCIA_MINUTOS` en `.env` (por defecto 2880 = 48 h; para probar el vencimiento usar `2`).
+- Con la oferta `ACEPTADA` la respuesta incluye `entrega` (dirección y coordenadas) y el detalle de la
+  publicación pasa a mostrar la dirección exacta al comprador.
+- Los errores de estos endpoints devuelven el motivo en el campo `detail`
+  (por ejemplo, "Tenés que esperar la respuesta de la otra parte").
+
 ## Opcion A: ejecutar todo con Docker Desktop
 
 Instalar Docker Desktop y usar contenedores Linux. Desde la raiz del repositorio:

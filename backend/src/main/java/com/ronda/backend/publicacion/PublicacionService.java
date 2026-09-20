@@ -2,6 +2,7 @@ package com.ronda.backend.publicacion;
 
 import com.ronda.backend.auth.Usuario;
 import com.ronda.backend.auth.UsuarioRepository;
+import com.ronda.backend.oferta.OfertaService;
 import com.ronda.backend.perfil.PerfilDtos;
 import com.ronda.backend.perfil.PerfilService;
 import com.ronda.backend.perfil.ReputacionPerfilService;
@@ -21,14 +22,16 @@ public class PublicacionService {
     private final FotoStorageService fotos;
     private final PerfilService perfiles;
     private final ReputacionPerfilService reputaciones;
+    private final OfertaService ofertas;
 
     public PublicacionService(PublicacionRepository publicaciones, UsuarioRepository usuarios, FotoStorageService fotos,
-                              PerfilService perfiles, ReputacionPerfilService reputaciones) {
+                              PerfilService perfiles, ReputacionPerfilService reputaciones, OfertaService ofertas) {
         this.publicaciones = publicaciones;
         this.usuarios = usuarios;
         this.fotos = fotos;
         this.perfiles = perfiles;
         this.reputaciones = reputaciones;
+        this.ofertas = ofertas;
     }
 
     @Transactional
@@ -56,8 +59,8 @@ public class PublicacionService {
         if (!esPropia && publicacion.getEstadoPublicacion() != EstadoPublicacion.ACTIVA) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Publicación no encontrada");
         }
-        // TODO punto 7 (ofertas): también debe ser visible si el usuario tiene una oferta ACEPTADA sobre esta publicación.
-        boolean direccionVisible = esPropia;
+        // Punto 7: la dirección exacta la ve el dueño o el comprador con una oferta ACEPTADA.
+        boolean direccionVisible = esPropia || ofertas.compradorTieneOfertaAceptada(id, usuario.getId());
         // Punto 2: mismo nombre y reputación que muestra el perfil público del vendedor.
         Usuario vendedor = publicacion.getVendedor();
         return PublicacionDtos.Detalle.from(publicacion, esPropia, direccionVisible,
