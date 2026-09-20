@@ -1,6 +1,7 @@
 package com.ronda.backend.publicacion;
 
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +24,33 @@ public class PublicacionController {
     public PublicacionDtos.Response create(@AuthenticationPrincipal UserDetails user,
                                            @Valid @RequestBody PublicacionDtos.CreateRequest request) {
         return service.create(user.getUsername(), request);
+    }
+
+    @GetMapping
+    public PublicacionDtos.PageResponse<PublicacionDtos.Resumen> explorar(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String categoria,
+            @RequestParam(required = false) BigDecimal precioMin,
+            @RequestParam(required = false) BigDecimal precioMax,
+            @RequestParam(required = false) EstadoArticulo estadoArticulo,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lng,
+            @RequestParam(required = false) Double radioKm,
+            @RequestParam(defaultValue = "RECIENTES") OrdenPublicaciones orden,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        var filtros = new ExplorarFiltros(q, categoria, precioMin, precioMax, estadoArticulo, lat, lng, radioKm);
+        return service.explorar(filtros, orden, page, size);
+    }
+
+    @GetMapping("/categorias")
+    public List<String> categorias() {
+        return service.categorias();
+    }
+
+    @GetMapping("/{id}")
+    public PublicacionDtos.Detalle detalle(@AuthenticationPrincipal UserDetails user, @PathVariable Long id) {
+        return service.detalle(user.getUsername(), id);
     }
 
     @GetMapping("/mias")

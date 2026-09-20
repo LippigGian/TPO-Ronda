@@ -53,11 +53,27 @@
         app:layout_constraintTop_toBottomOf="@id/tvSesionIniciada" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnIrAPublicarArticulo"
+        android:id="@+id/btnIrAExplorar"
         android:layout_width="0dp"
         android:layout_height="52dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="18dp"
+        android:layout_marginEnd="24dp"
+        android:backgroundTint="@color/ronda_primary"
+        android:text="Explorar publicaciones"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        app:cornerRadius="14dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvAcciones" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnIrAPublicarArticulo"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="24dp"
         android:backgroundTint="@color/ronda_primary"
         android:text="Publicar un artículo"
@@ -66,7 +82,7 @@
         app:cornerRadius="14dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvAcciones" />
+        app:layout_constraintTop_toBottomOf="@id/btnIrAExplorar" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnIrAMisPublicaciones"
