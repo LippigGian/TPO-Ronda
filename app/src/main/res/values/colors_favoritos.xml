@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Punto 10: favoritos y búsquedas guardadas. -->
+<resources>
+    <color name="favorito_lleno">#E11D48</color>
+    <color name="favorito_novedad">#B45309</color>
+    <color name="favorito_novedad_fondo">#FEF3C7</color>
+</resources>

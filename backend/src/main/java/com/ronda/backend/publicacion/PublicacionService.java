@@ -6,6 +6,7 @@ import com.ronda.backend.oferta.OfertaService;
 import com.ronda.backend.perfil.PerfilDtos;
 import com.ronda.backend.perfil.PerfilService;
 import com.ronda.backend.perfil.ReputacionPerfilService;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,14 @@ public class PublicacionService {
         Usuario vendedor = publicacion.getVendedor();
         return PublicacionDtos.Detalle.from(publicacion, esPropia, direccionVisible,
                 perfiles.nombrePublico(vendedor), reputacionDe(vendedor.getId()));
+    }
+
+    /** Punto 10: cuántas publicaciones activas nuevas matchean estos filtros desde una fecha (búsquedas guardadas). */
+    @Transactional(readOnly = true)
+    public long contarNuevasDesde(ExplorarFiltros filtros, Instant desde) {
+        var spec = PublicacionSpecs.explorar(filtros)
+                .and((root, query, cb) -> cb.greaterThan(root.get("createdAt"), desde));
+        return publicaciones.count(spec);
     }
 
     @Transactional(readOnly = true)

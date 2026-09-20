@@ -3,6 +3,7 @@ package com.example.ronda;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -12,7 +13,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /** Tarjetas del Home. Soporta agregar páginas nuevas al final (scroll infinito). */
 public class PublicacionesAdapter extends RecyclerView.Adapter<PublicacionesAdapter.ViewHolder> {
@@ -21,11 +24,19 @@ public class PublicacionesAdapter extends RecyclerView.Adapter<PublicacionesAdap
         void onClick(ApiClient.PublicacionResponse publicacion);
     }
 
-    private final List<ApiClient.PublicacionResponse> items = new ArrayList<>();
-    private final OnPublicacionClick onClick;
+    /** Punto 10: tocar el corazón de una card. esFavoritoActual es el estado antes de tocar. */
+    public interface OnFavoritoClick {
+        void onClick(ApiClient.PublicacionResponse publicacion, boolean esFavoritoActual);
+    }
 
-    public PublicacionesAdapter(OnPublicacionClick onClick) {
+    private final List<ApiClient.PublicacionResponse> items = new ArrayList<>();
+    private final Set<Long> favoritoIds = new HashSet<>();
+    private final OnPublicacionClick onClick;
+    private final OnFavoritoClick onFavoritoClick;
+
+    public PublicacionesAdapter(OnPublicacionClick onClick, OnFavoritoClick onFavoritoClick) {
         this.onClick = onClick;
+        this.onFavoritoClick = onFavoritoClick;
     }
 
     public void reemplazar(List<ApiClient.PublicacionResponse> nuevos) {
@@ -38,6 +49,28 @@ public class PublicacionesAdapter extends RecyclerView.Adapter<PublicacionesAdap
         int inicio = items.size();
         items.addAll(nuevos);
         notifyItemRangeInserted(inicio, nuevos.size());
+    }
+
+    /** Se llama una vez al cargar el Home con los favoritos actuales del usuario. */
+    public void setFavoritoIds(Set<Long> ids) {
+        favoritoIds.clear();
+        favoritoIds.addAll(ids);
+        notifyDataSetChanged();
+    }
+
+    /** Actualiza el corazón de una card puntual después de marcar/desmarcar favorito. */
+    public void marcarFavorito(long publicacionId, boolean favorito) {
+        if (favorito) {
+            favoritoIds.add(publicacionId);
+        } else {
+            favoritoIds.remove(publicacionId);
+        }
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).getId() == publicacionId) {
+                notifyItemChanged(i);
+                break;
+            }
+        }
     }
 
     @NonNull
@@ -56,6 +89,10 @@ public class PublicacionesAdapter extends RecyclerView.Adapter<PublicacionesAdap
         holder.precio.setText(Formato.precio(publicacion.getPrecio()));
         holder.estado.setText(Formato.estadoArticulo(publicacion.getEstadoArticulo()));
         holder.zona.setText(textoUbicacion(publicacion));
+
+        boolean esFavorito = favoritoIds.contains(publicacion.getId());
+        holder.btnFavorito.setImageResource(esFavorito ? R.drawable.ic_favorito_lleno : R.drawable.ic_favorito_borde);
+        holder.btnFavorito.setOnClickListener(v -> onFavoritoClick.onClick(publicacion, esFavorito));
 
         if (publicacion.getFotos() != null && !publicacion.getFotos().isEmpty()) {
             Glide.with(holder.foto)
@@ -85,6 +122,7 @@ public class PublicacionesAdapter extends RecyclerView.Adapter<PublicacionesAdap
 
     static final class ViewHolder extends RecyclerView.ViewHolder {
         final ImageView foto;
+        final ImageButton btnFavorito;
         final TextView titulo;
         final TextView precio;
         final TextView estado;
@@ -93,6 +131,7 @@ public class PublicacionesAdapter extends RecyclerView.Adapter<PublicacionesAdap
         ViewHolder(View itemView) {
             super(itemView);
             foto = itemView.findViewById(R.id.ivFotoPublicacion);
+            btnFavorito = itemView.findViewById(R.id.btnFavoritoPublicacion);
             titulo = itemView.findViewById(R.id.tvTituloPublicacion);
             precio = itemView.findViewById(R.id.tvPrecioPublicacion);
             estado = itemView.findViewById(R.id.tvEstadoArticulo);

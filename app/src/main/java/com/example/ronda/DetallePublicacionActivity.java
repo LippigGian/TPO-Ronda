@@ -2,6 +2,7 @@ package com.example.ronda;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -10,12 +11,15 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.button.MaterialButton;
+import com.example.ronda.favorito.FavoritoAcciones;
+import com.example.ronda.favorito.FavoritoApi;
 import com.example.ronda.oferta.OfertaAcciones;
 import com.example.ronda.perfil.PerfilPublicoActivity;
 
@@ -53,6 +57,7 @@ public class DetallePublicacionActivity extends AppCompatActivity {
     private MaterialButton btnOfertar;
     private MaterialButton btnPreguntar;
     private MaterialButton btnGuardar;
+    private boolean esFavorito;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -261,7 +266,52 @@ public class DetallePublicacionActivity extends AppCompatActivity {
         // Cada acción se conecta con su módulo: ofertas (punto 7) y favoritos (punto 10).
         btnOfertar.setOnClickListener(v -> OfertaAcciones.ofertar(this, p.getId(), p.getPrecio()));
         btnPreguntar.setOnClickListener(v -> proximamente("Las preguntas"));
-        btnGuardar.setOnClickListener(v -> proximamente("Los favoritos"));
+        cargarEstadoFavorito(p.getId());
+    }
+
+    /** Consulta si esta publicación ya es favorita para pintar el botón y, si lo es, limpia su indicador de novedad. */
+    private void cargarEstadoFavorito(long publicacionId) {
+        ApiClient.crearServicio(FavoritoApi.class).listarIdsFavoritos().enqueue(new Callback<List<Long>>() {
+            @Override
+            public void onResponse(Call<List<Long>> call, Response<List<Long>> response) {
+                if (isFinishing()) {
+                    return;
+                }
+                esFavorito = response.isSuccessful() && response.body() != null
+                        && response.body().contains(publicacionId);
+                mostrarEstadoFavorito();
+                if (esFavorito) {
+                    FavoritoAcciones.marcarVisto(publicacionId);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Long>> call, Throwable error) {
+                // Sin favoritos no se puede togglear el corazón, pero el resto del detalle sigue usable.
+            }
+        });
+        btnGuardar.setOnClickListener(v -> togglearFavorito(publicacionId));
+    }
+
+    private void togglearFavorito(long publicacionId) {
+        if (esFavorito) {
+            FavoritoAcciones.desmarcar(this, publicacionId, () -> {
+                esFavorito = false;
+                mostrarEstadoFavorito();
+            });
+        } else {
+            FavoritoAcciones.marcar(this, publicacionId, () -> {
+                esFavorito = true;
+                mostrarEstadoFavorito();
+            });
+        }
+    }
+
+    private void mostrarEstadoFavorito() {
+        btnGuardar.setText(esFavorito ? R.string.detalle_guardado : R.string.detalle_guardar);
+        btnGuardar.setIconResource(esFavorito ? R.drawable.ic_favorito_lleno : R.drawable.ic_favorito_borde);
+        int color = ContextCompat.getColor(this, esFavorito ? R.color.favorito_lleno : R.color.ronda_primary);
+        btnGuardar.setIconTint(ColorStateList.valueOf(color));
     }
 
     private void proximamente(String funcion) {

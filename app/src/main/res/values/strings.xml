@@ -30,6 +30,8 @@
     <string name="filtro_precio_max">Máximo</string>
     <string name="filtro_estado">Estado del artículo</string>
     <string name="filtro_cercania">Cerca de mi ubicación</string>
+    <string name="filtro_guardar_busqueda">Guardar esta búsqueda</string>
+    <string name="filtro_nombre_busqueda">Nombre para identificarla</string>
     <string name="orden_recientes">Más recientes</string>
     <string name="orden_precio_asc">Menor precio</string>
     <string name="orden_precio_desc">Mayor precio</string>
@@ -44,6 +46,7 @@
     <string name="detalle_ofertar">Hacer una oferta</string>
     <string name="detalle_preguntar">Preguntar</string>
     <string name="detalle_guardar">Guardar</string>
+    <string name="detalle_guardado">Guardado</string>
     <string name="detalle_gestionar">Gestionar mi publicación</string>
     <string name="detalle_requiere_conexion">Necesitás conexión a internet para preguntar, ofertar o guardar.</string>
     <string name="detalle_aviso_offline">Sin conexión: mostramos la última versión guardada de esta publicación. Puede no estar actualizada.</string>
