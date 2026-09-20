@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.button.MaterialButton;
+import com.example.ronda.perfil.PerfilPublicoActivity;
 
 import java.util.Collections;
 import java.util.List;
@@ -218,9 +219,8 @@ public class DetallePublicacionActivity extends AppCompatActivity {
         }
 
         btnVerPerfil.setVisibility(View.VISIBLE);
-        // El perfil público es del punto 2: cuando exista su pantalla se abre acá con vendedor.getId().
-        btnVerPerfil.setOnClickListener(v -> Toast.makeText(this,
-                "El perfil público estará disponible con el módulo de Perfil", Toast.LENGTH_SHORT).show());
+        // Punto 2: antes de operar, cualquier persona puede consultar el perfil público del vendedor.
+        btnVerPerfil.setOnClickListener(v -> PerfilPublicoActivity.abrir(this, vendedor.getId()));
     }
 
     /** La dirección exacta solo se ve si el backend la mandó (dueño u oferta aceptada). */
