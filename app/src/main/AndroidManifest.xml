@@ -70,7 +70,15 @@
             android:exported="false" />
         <activity
             android:name=".oferta.MisOfertasActivity"
-            android:exported="false" />
+            android:exported="false" /> 
+        <activity
+            android:name=".HistorialOperacionesActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".CalificarActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

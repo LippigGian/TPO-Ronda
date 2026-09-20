@@ -13,7 +13,9 @@ import java.util.List;
 
 
 public final class ApiClient {
-    private static final String BASE_URL = "http://127.0.0.1:8080/";
+    // 10.0.2.2 es el alias especial del emulador de Android para llegar al localhost de la PC host.
+    // Si corrés la app en un celular físico, cambiar por la IP de la PC en la red (ej: http://192.168.x.x:8080/).
+    private static final String BASE_URL = "http://10.0.2.2:8080/";
 
     /** Preparo Retrofti para utilizar la ainterfaz RondaApi **/
     private static RondaApi api;
@@ -144,10 +146,22 @@ public final class ApiClient {
         private String token;
         private String tokenType;
         private long expiresIn;
+        private UserResponse user;
 
         public String getToken() { return token; }
         public String getTokenType() { return tokenType; }
         public long getExpiresIn() { return expiresIn; }
+        public UserResponse getUser() { return user; }
+    }
+
+    public static final class UserResponse {
+        private long id;
+        private String email;
+        private String username;
+
+        public long getId() { return id; }
+        public String getEmail() { return email; }
+        public String getUsername() { return username; }
     }
 
     public static final class OtpRequestResponse {
@@ -328,5 +342,83 @@ public final class ApiClient {
         public int getOperacionesComoVendedor() { return operacionesComoVendedor; }
         public int getOperacionesComoComprador() { return operacionesComoComprador; }
     }
+    /** Búsqueda de usuario por email (para elegir comprador al vender) **/
+    public static final class BuscarUsuarioResponse {
+        private long id;
+        private String nombreUsuario;
+
+        public long getId() { return id; }
+        public String getNombreUsuario() { return nombreUsuario; }
+    }
+
+    /** Venta de una publicación (crea la operación) **/
+    public static final class VenderRequest {
+        private final String compradorEmail;
+        private final double montoFinal;
+
+        public VenderRequest(String compradorEmail, double montoFinal) {
+            this.compradorEmail = compradorEmail;
+            this.montoFinal = montoFinal;
+        }
+    }
+
+    /** Historial de operaciones (compras/ventas) **/
+    public static final class HistorialItemResponse {
+        private long id;
+        private String tipo;
+        private long publicacionId;
+        private String publicacionTitulo;
+        private double montoFinal;
+        private String fechaOperacion;
+        private long contraparteId;
+        private String contraparteNombre;
+        private boolean yaCalificada;
+        private String puedeCalificarHasta;
+
+        public long getId() { return id; }
+        public String getTipo() { return tipo; }
+        public long getPublicacionId() { return publicacionId; }
+        public String getPublicacionTitulo() { return publicacionTitulo; }
+        public double getMontoFinal() { return montoFinal; }
+        public String getFechaOperacion() { return fechaOperacion; }
+        public long getContraparteId() { return contraparteId; }
+        public String getContraparteNombre() { return contraparteNombre; }
+        public boolean isYaCalificada() { return yaCalificada; }
+        public String getPuedeCalificarHasta() { return puedeCalificarHasta; }
+        public boolean puedeCalificarAhora() {
+            return !yaCalificada && puedeCalificarHasta != null;
+        }
+    }
+
+    /** Calificaciones **/
+    public static final class CalificacionRequest {
+        private final int puntaje;
+        private final String comentario;
+
+        public CalificacionRequest(int puntaje, String comentario) {
+            this.puntaje = puntaje;
+            this.comentario = comentario;
+        }
+    }
+
+    public static final class CalificacionResponse {
+        private long id;
+        private long operacionId;
+        private String autorNombre;
+        private String receptorNombre;
+        private int puntaje;
+        private String comentario;
+        private String createdAt;
+
+        public long getId() { return id; }
+        public String getAutorNombre() { return autorNombre; }
+        public String getReceptorNombre() { return receptorNombre; }
+        public int getPuntaje() { return puntaje; }
+        public String getComentario() { return comentario; }
+        public String getCreatedAt() { return createdAt; }
+    }
+
+   
+
 
 }

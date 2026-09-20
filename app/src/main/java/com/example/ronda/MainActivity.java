@@ -9,6 +9,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import android.content.Intent;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.example.ronda.oferta.MisOfertasActivity;
 import com.example.ronda.perfil.PerfilActivity;
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnIrAExplorar = findViewById(R.id.btnIrAExplorar);
         Button btnIrAPublicarArticulo = findViewById(R.id.btnIrAPublicarArticulo);
         Button btnIrAMisPublicaciones = findViewById(R.id.btnIrAMisPublicaciones);
+        Button btnIrAHistorial = findViewById(R.id.btnIrAHistorial);
         Button btnIrAMiPerfil = findViewById(R.id.btnIrAMiPerfil);
         Button btnIrAMisOfertas = findViewById(R.id.btnIrAMisOfertas);
 
@@ -50,6 +52,11 @@ public class MainActivity extends AppCompatActivity {
         btnIrAMisOfertas.setOnClickListener(view ->
                 startActivity(MisOfertasActivity.crearIntent(MainActivity.this))
         );
+
+        btnIrAHistorial.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, HistorialOperacionesActivity.class))
+        );
+
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());

@@ -1,8 +1,7 @@
 package com.ronda.backend.perfil;
 
-import com.ronda.backend.oferta.EstadoOferta;
-import com.ronda.backend.oferta.OfertaRepository;
-import com.ronda.backend.publicacion.EstadoPublicacion;
+import com.ronda.backend.operacion.CalificacionRepository;
+import com.ronda.backend.operacion.OperacionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,31 +11,24 @@ import org.springframework.transaction.annotation.Transactional;
  * Se llama ReputacionPerfilService (y no ReputacionService) para no chocar con el bean
  * homonimo de la feature de calificaciones (punto 9): Spring no admite dos beans con el
  * mismo nombre y el backend no arrancaria al mergear ambas ramas.
- * Cuando se integre la feature de calificaciones (punto 9), solo hay que cambiar esta
- * clase: los controladores y las pantallas ya consumen el record Reputacion.
  */
 @Service
 public class ReputacionPerfilService {
-    private final PerfilPublicacionRepository publicaciones;
-    private final OfertaRepository ofertas;
+    private final OperacionRepository operaciones;
+    private final CalificacionRepository calificaciones;
 
-    public ReputacionPerfilService(PerfilPublicacionRepository publicaciones, OfertaRepository ofertas) {
-        this.publicaciones = publicaciones;
-        this.ofertas = ofertas;
+    public ReputacionPerfilService(OperacionRepository operaciones, CalificacionRepository calificaciones) {
+        this.operaciones = operaciones;
+        this.calificaciones = calificaciones;
     }
 
     @Transactional(readOnly = true)
     public PerfilDtos.Reputacion calcular(Long usuarioId) {
-        // Ventas: publicaciones del usuario marcadas como VENDIDA.
-        long ventas = publicaciones.countByVendedorIdAndEstadoPublicacion(usuarioId, EstadoPublicacion.VENDIDA);
+        long ventas = operaciones.countByVendedorId(usuarioId);
+        long compras = operaciones.countByCompradorId(usuarioId);
 
-        // TODO punto 9: promedio y cantidad desde la tabla de calificaciones.
-        Double promedioEstrellas = null;
-        long cantidadCalificaciones = 0;
-
-        // Compras: ofertas aceptadas como comprador sobre publicaciones que ya se vendieron.
-        long compras = ofertas.countByCompradorIdAndEstadoAndPublicacionEstadoPublicacion(usuarioId,
-                EstadoOferta.ACEPTADA, EstadoPublicacion.VENDIDA);
+        Double promedioEstrellas = calificaciones.promedioPuntaje(usuarioId);
+        long cantidadCalificaciones = calificaciones.countByReceptorId(usuarioId);
 
         return new PerfilDtos.Reputacion(promedioEstrellas, cantidadCalificaciones, ventas, compras);
     }
