@@ -418,8 +418,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void abrirDetalle(ApiClient.PublicacionResponse publicacion) {
-        // El detalle de la publicación se conecta en el siguiente PR (punto 4).
-        Toast.makeText(this, publicacion.getTitulo(), Toast.LENGTH_SHORT).show();
+        startActivity(DetallePublicacionActivity.crearIntent(this, publicacion.getId()));
     }
 
     private static Double leerNumero(TextInputEditText campo) {
