@@ -13,6 +13,15 @@
     //Publicaciones //
     <string name="foto_publicacion">Foto del artículo</string>
 
+    <!-- Home -->
+    <string name="home_titulo">Explorar</string>
+    <string name="home_buscar_hint">Buscar por título o descripción</string>
+    <string name="home_filtros">Filtros</string>
+    <string name="home_sin_resultados">No encontramos publicaciones con esos criterios.</string>
+    <string name="orden_recientes">Más recientes</string>
+    <string name="orden_precio_asc">Menor precio</string>
+    <string name="orden_precio_desc">Mayor precio</string>
+
     <string-array name="estados_articulo">
         <item>NUEVO</item>
         <item>COMO_NUEVO</item>
