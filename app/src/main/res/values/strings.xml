@@ -18,6 +18,17 @@
     <string name="home_buscar_hint">Buscar por título o descripción</string>
     <string name="home_filtros">Filtros</string>
     <string name="home_sin_resultados">No encontramos publicaciones con esos criterios.</string>
+    <string name="filtros_titulo">Filtros</string>
+    <string name="filtro_aplicar">Aplicar</string>
+    <string name="filtro_limpiar">Limpiar</string>
+    <string name="filtro_categoria">Categoría</string>
+    <string name="filtro_todas">Todas</string>
+    <string name="filtro_todos">Todos</string>
+    <string name="filtro_precio">Rango de precio</string>
+    <string name="filtro_precio_min">Mínimo</string>
+    <string name="filtro_precio_max">Máximo</string>
+    <string name="filtro_estado">Estado del artículo</string>
+    <string name="filtro_cercania">Cerca de mi ubicación</string>
     <string name="orden_recientes">Más recientes</string>
     <string name="orden_precio_asc">Menor precio</string>
     <string name="orden_precio_desc">Mayor precio</string>
