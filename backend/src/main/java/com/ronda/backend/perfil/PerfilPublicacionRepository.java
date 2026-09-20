@@ -14,6 +14,4 @@ import org.springframework.data.repository.Repository;
 public interface PerfilPublicacionRepository extends Repository<Publicacion, Long> {
     List<Publicacion> findByVendedorIdAndEstadoPublicacionOrderByCreatedAtDesc(Long vendedorId,
                                                                                EstadoPublicacion estado);
-
-    long countByVendedorIdAndEstadoPublicacion(Long vendedorId, EstadoPublicacion estado);
 }
