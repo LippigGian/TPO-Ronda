@@ -20,6 +20,7 @@ public class Publicacion {
 
     @OneToMany(mappedBy = "publicacion", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orden ASC")
+    @org.hibernate.annotations.BatchSize(size = 50)
     private List<PublicacionFoto> fotos = new ArrayList<>();
 
     @Column(nullable = false, length = 120)
