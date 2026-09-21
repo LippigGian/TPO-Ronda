@@ -11,6 +11,8 @@ public final class SessionManager {
     private static final String PREFERENCES_NAME = "ronda_secure_session";
     private static final String LEGACY_PREFERENCES_NAME = "ronda_session";
     private static final String TOKEN_KEY = "access_token";
+    private static final String USER_ID_KEY = "user_id";
+    private static final String USER_NOMBRE_KEY = "user_nombre";
     private final SharedPreferences preferences;
 
     @SuppressWarnings("deprecation")
@@ -43,7 +45,23 @@ public final class SessionManager {
     }
 
     public void clearToken() {
-        preferences.edit().remove(TOKEN_KEY).apply();
+        preferences.edit().remove(TOKEN_KEY).remove(USER_ID_KEY).remove(USER_NOMBRE_KEY).apply();
+    }
+
+    /** Guarda los datos del usuario logueado (vienen en la respuesta de login/OTP). **/
+    public void saveUser(long id, String nombreUsuario) {
+        preferences.edit()
+                .putLong(USER_ID_KEY, id)
+                .putString(USER_NOMBRE_KEY, nombreUsuario)
+                .apply();
+    }
+
+    public long getUserId() {
+        return preferences.getLong(USER_ID_KEY, -1L);
+    }
+
+    public String getUserNombre() {
+        return preferences.getString(USER_NOMBRE_KEY, null);
     }
 
     // Migra la sesión previa y elimina la copia que estaba guardada sin cifrado.

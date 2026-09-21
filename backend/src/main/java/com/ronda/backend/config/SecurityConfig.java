@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/status", "/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/status", "/actuator/health", "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login",
                                 "/api/v1/auth/otp/request", "/api/v1/auth/otp/resend", "/api/v1/auth/otp/verify").permitAll()
                         .anyRequest().authenticated())

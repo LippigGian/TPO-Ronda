@@ -82,7 +82,7 @@ public class LoginActivity extends AppCompatActivity {
                             ApiClient.LoginResponse body = response.body();
 
                             if (response.isSuccessful() && body != null && body.getToken() != null) {
-                                saveSessionAndOpenHome(body.getToken());
+                                saveSessionAndOpenHome(body);
                                 return;
                             }
 
@@ -158,8 +158,12 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void saveSessionAndOpenHome(String token) {
-        sessionManager.saveToken(token);
+    /** GUARDAMOS EL TOKEN Y LOS DATOS DEL USUARIO **/
+    private void saveSessionAndOpenHome(ApiClient.LoginResponse body) {
+        sessionManager.saveToken(body.getToken());
+        if (body.getUser() != null) {
+            sessionManager.saveUser(body.getUser().getId(), body.getUser().getUsername());
+        }
         abrirInicio();
     }
 

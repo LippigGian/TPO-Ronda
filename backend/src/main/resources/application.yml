@@ -36,6 +36,10 @@ spring:
           auth: ${MAIL_SMTP_AUTH:false}
           starttls:
             enable: ${MAIL_SMTP_STARTTLS:false}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 25MB
 server:
   port: ${SERVER_PORT:8080}
 management:
@@ -50,6 +54,13 @@ management:
     health:
       show-details: never
 app:
+  ofertas:
+    # Plazo de vigencia de cada oferta/contraoferta. 2880 minutos = 48 horas.
+    vigencia-minutos: ${OFERTAS_VIGENCIA_MINUTOS:2880}
+    # Cada cuanto se revisan las ofertas vencidas (milisegundos).
+    revision-vencimiento-ms: ${OFERTAS_REVISION_MS:60000}
+  storage:
+    upload-dir: ${UPLOAD_DIR:./uploads}
   otp:
     expiration-seconds: ${OTP_EXPIRATION_SECONDS:600}
     sender: ${OTP_SENDER:no-reply@ronda.local}

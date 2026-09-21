@@ -122,7 +122,11 @@ public class ValidarOtpActivity extends AppCompatActivity {
                             ApiClient.LoginResponse body = response.body();
 
                             if (response.isSuccessful() && body != null && body.getToken() != null) {
-                                new SessionManager(ValidarOtpActivity.this).saveToken(body.getToken());
+                                SessionManager sessionManager = new SessionManager(ValidarOtpActivity.this);
+                                sessionManager.saveToken(body.getToken());
+                                if (body.getUser() != null) {
+                                    sessionManager.saveUser(body.getUser().getId(), body.getUser().getUsername());
+                                }
                                 startActivity(new Intent(ValidarOtpActivity.this, MainActivity.class));
                                 finish();
                                 return;

@@ -19,6 +19,90 @@ Registro y login por contraseña entregan sesiones JWT. El registro deja la cuen
 se almacenan como hash y admiten hasta cinco intentos fallidos.
 Docker Compose incluye Mailpit para desarrollo: los emails se pueden ver en `http://localhost:8025`.
 
+### Usuario de prueba local
+
+Flyway crea una única cuenta de desarrollo para facilitar las pruebas del equipo. Está disponible
+también en bases existentes después de reiniciar el backend para aplicar la migración:
+
+```text
+Email: demo@ronda.com
+Contraseña: ronda123
+```
+
+Es un usuario solo para desarrollo; no usar esas credenciales en un entorno público.
+
+## Publicaciones
+
+Las rutas de publicaciones requieren un JWT válido, excepto la lectura de archivos bajo `/uploads/**`.
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| `POST` | `/api/v1/publicaciones` | Crea una publicación para el usuario autenticado. |
+| `GET` | `/api/v1/publicaciones/mias` | Lista las publicaciones propias, incluidas pausadas o vendidas. |
+| `PATCH` | `/api/v1/publicaciones/{id}/estado` | Cambia el estado a `ACTIVA`, `PAUSADA` o `VENDIDA`. |
+| `POST` | `/api/v1/publicaciones/{id}/fotos` | Carga de 1 a 5 fotos con `multipart/form-data`, usando la clave `fotos`. |
+| `GET` | `/api/v1/publicaciones` | Home: listado paginado de publicaciones activas con búsqueda, filtros y orden. |
+| `GET` | `/api/v1/publicaciones/{id}` | Detalle: fotos, descripción, vendedor con reputación y permiso sobre la dirección. |
+| `GET` | `/api/v1/publicaciones/categorias` | Categorías que hoy tienen publicaciones activas (para el filtro). |
+
+Al crear una publicación se envían `titulo`, `descripcion`, `categoria`, `precio`,
+`estadoArticulo` (`NUEVO`, `COMO_NUEVO` o `USADO`), `direccion`, `latitud` y `longitud`.
+Las fotos se conservan en el volumen Docker `uploads_data`, por lo que no se pierden al reiniciar
+los contenedores.
+
+### Explorar publicaciones (Home)
+
+`GET /api/v1/publicaciones` acepta estos parámetros, todos opcionales y combinables:
+
+| Parámetro | Uso |
+| --- | --- |
+| `q` | Texto libre sobre título y descripción. |
+| `categoria` | Categoría exacta (sin distinguir mayúsculas). |
+| `precioMin`, `precioMax` | Rango de precio. |
+| `estadoArticulo` | `NUEVO`, `COMO_NUEVO` o `USADO`. |
+| `lat`, `lng`, `radioKm` | Cercanía: solo publicaciones dentro del radio. Con `lat` y `lng` se informa `distanciaKm` aproximada. |
+| `orden` | `RECIENTES` (por defecto), `PRECIO_ASC` o `PRECIO_DESC`. |
+| `page`, `size` | Paginación desde 0. `size` por defecto 10 y máximo 50. |
+
+La respuesta es `{content, page, size, totalElements, totalPages, last}`. Cada item incluye la `zona` del vendedor
+pero **nunca** la dirección exacta ni las coordenadas: eso solo se ve en el detalle, con el permiso correspondiente.
+
+Los datos de `V11__seed_publicaciones_demo.sql` crean el vendedor `vendedor@ronda.com` (misma contraseña que el demo)
+con publicaciones de prueba. Las migraciones de esta feature usan `V10` y `V11` para no chocar con las de otras ramas.
+
+### Detalle de la publicación
+
+`GET /api/v1/publicaciones/{id}` devuelve el detalle completo, los datos del vendedor (`nombre`, `miembroDesde`,
+`reputacion`) y dos banderas según quién mire: `esPropia` y `direccionVisible`.
+La `direccion`, `latitud` y `longitud` exactas **solo se envían cuando `direccionVisible` es true**; si no, van en `null`.
+Hoy solo las ve el dueño. Cuando exista el módulo de ofertas (punto 7), `PublicacionService.detalle` debe marcarla
+visible también para quien tenga una oferta aceptada (hay un `TODO` en ese método). La reputación llega en cero hasta
+que existan las calificaciones (puntos 2 y 9). Las publicaciones pausadas o vendidas devuelven 404 a terceros.
+
+## Ofertas y negociación
+
+Una oferta es una negociación entre un comprador y el vendedor de una publicación. El campo `precio`
+es siempre la última propuesta y `turno` indica quién tiene que responder: quien tiene el turno puede
+aceptar, rechazar o contraofertar. Cada contraoferta le pasa el turno a la otra parte y renueva el plazo.
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| `POST` | `/api/v1/publicaciones/{id}/ofertas` | Oferta inicial del comprador: `precio` (distinto al publicado) y `mensaje` opcional. |
+| `GET` | `/api/v1/ofertas/mias` | "Mis ofertas": `enviadas`, `recibidas` y `pendientesDeMiRespuesta`. |
+| `GET` | `/api/v1/ofertas/{id}` | Una oferta, solo para sus participantes. |
+| `POST` | `/api/v1/ofertas/{id}/aceptar` | Acepta. Rechaza automáticamente las demás pendientes de la publicación. |
+| `POST` | `/api/v1/ofertas/{id}/rechazar` | Rechaza. |
+| `POST` | `/api/v1/ofertas/{id}/contraofertar` | Nueva propuesta: `precio` y `mensaje` opcional. |
+
+- Estados: `PENDIENTE`, `ACEPTADA`, `RECHAZADA` y `VENCIDA`. Solo `PENDIENTE` admite respuestas.
+- Vencimiento: pasado `vence_at`, la oferta caduca sola. Un job revisa cada minuto y además cada
+  endpoint de ofertas vence las expiradas antes de responder. El plazo se configura con
+  `OFERTAS_VIGENCIA_MINUTOS` en `.env` (por defecto 2880 = 48 h; para probar el vencimiento usar `2`).
+- Con la oferta `ACEPTADA` la respuesta incluye `entrega` (dirección y coordenadas) y el detalle de la
+  publicación pasa a mostrar la dirección exacta al comprador.
+- Los errores de estos endpoints devuelven el motivo en el campo `detail`
+  (por ejemplo, "Tenés que esperar la respuesta de la otra parte").
+
 ## Opcion A: ejecutar todo con Docker Desktop
 
 Instalar Docker Desktop y usar contenedores Linux. Desde la raiz del repositorio:

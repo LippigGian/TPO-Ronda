@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Ronda</string>
-
+    // Login //
     <string name="login_title">Ronda</string>
     <string name="login_subtitle">Comprá, vendé y encontrá lo que buscás.</string>
     <string name="email_hint">Correo electrónico</string>
@@ -9,5 +9,53 @@
     <string name="otp_button">Ingresar con código OTP</string>
     <string name="recover_access_button">Recuperar acceso</string>
     <string name="create_account_button">¿No tenés cuenta? Crear cuenta</string>
+
+    //Publicaciones //
+    <string name="foto_publicacion">Foto del artículo</string>
+
+    <!-- Home -->
+    <string name="home_titulo">Explorar</string>
+    <string name="home_buscar_hint">Buscar por título o descripción</string>
+    <string name="home_filtros">Filtros</string>
+    <string name="home_sin_resultados">No encontramos publicaciones con esos criterios.</string>
+    <string name="home_aviso_offline">Sin conexión: te mostramos las últimas publicaciones guardadas. La información podría no estar actualizada.</string>
+    <string name="filtros_titulo">Filtros</string>
+    <string name="filtro_aplicar">Aplicar</string>
+    <string name="filtro_limpiar">Limpiar</string>
+    <string name="filtro_categoria">Categoría</string>
+    <string name="filtro_todas">Todas</string>
+    <string name="filtro_todos">Todos</string>
+    <string name="filtro_precio">Rango de precio</string>
+    <string name="filtro_precio_min">Mínimo</string>
+    <string name="filtro_precio_max">Máximo</string>
+    <string name="filtro_estado">Estado del artículo</string>
+    <string name="filtro_cercania">Cerca de mi ubicación</string>
+    <string name="filtro_guardar_busqueda">Guardar esta búsqueda</string>
+    <string name="filtro_nombre_busqueda">Nombre para identificarla</string>
+    <string name="orden_recientes">Más recientes</string>
+    <string name="orden_precio_asc">Menor precio</string>
+    <string name="orden_precio_desc">Mayor precio</string>
+
+    <!-- Detalle de la publicación -->
+    <string name="detalle_sin_fotos">Sin fotos</string>
+    <string name="detalle_vendedor">Vendedor</string>
+    <string name="detalle_ver_perfil">Ver perfil público</string>
+    <string name="detalle_punto_entrega">Punto de entrega</string>
+    <string name="detalle_direccion_oculta">La dirección exacta se muestra cuando se acepta tu oferta.</string>
+    <string name="detalle_como_llegar">Cómo llegar</string>
+    <string name="detalle_ofertar">Hacer una oferta</string>
+    <string name="detalle_preguntar">Preguntar</string>
+    <string name="detalle_guardar">Guardar</string>
+    <string name="detalle_guardado">Guardado</string>
+    <string name="detalle_gestionar">Gestionar mi publicación</string>
+    <string name="detalle_requiere_conexion">Necesitás conexión a internet para preguntar, ofertar o guardar.</string>
+    <string name="detalle_aviso_offline">Sin conexión: mostramos la última versión guardada de esta publicación. Puede no estar actualizada.</string>
+    <string name="detalle_no_disponible">No pudimos cargar la publicación</string>
+
+    <string-array name="estados_articulo">
+        <item>NUEVO</item>
+        <item>COMO_NUEVO</item>
+        <item>USADO</item>
+    </string-array>
 
 </resources>

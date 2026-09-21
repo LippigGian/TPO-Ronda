@@ -7,9 +7,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import com.example.ronda.model.Publicacion;
+import android.content.Intent;
+import android.widget.Button;
+import android.widget.Toast;
 
-import android.widget.TextView;
+import com.example.ronda.favorito.MisFavoritosActivity;
+import com.example.ronda.oferta.MisOfertasActivity;
+import com.example.ronda.perfil.PerfilActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,24 +22,46 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        //Prueba de creacion de objeto Publicacion
-        Publicacion publicacion = new Publicacion(
-                "Bicicleta mountain bike",
-                250000,
-                "Usado",
-                "Palermo"
-        );
-//       Buscar los datos del componente:
+        /** Botones de las publicaciones **/
+        Button btnIrAExplorar = findViewById(R.id.btnIrAExplorar);
+        Button btnIrAPublicarArticulo = findViewById(R.id.btnIrAPublicarArticulo);
+        Button btnIrAMisPublicaciones = findViewById(R.id.btnIrAMisPublicaciones);
+        Button btnIrAHistorial = findViewById(R.id.btnIrAHistorial);
+        Button btnIrAMiPerfil = findViewById(R.id.btnIrAMiPerfil);
+        Button btnIrAMisOfertas = findViewById(R.id.btnIrAMisOfertas);
+        Button btnIrAMisFavoritos = findViewById(R.id.btnIrAMisFavoritos);
 
-        TextView tvTitulo = findViewById(R.id.tvTituloPublicacion);
-        TextView tvPrecio = findViewById(R.id.tvPrecioPublicacion);
-        TextView tvEstado = findViewById(R.id.tvEstadoPublicacion);
-        TextView tvZona = findViewById(R.id.tvZonaPublicacion);
-//      Mostrar los datos:
-        tvTitulo.setText(publicacion.getTitulo());
-        tvPrecio.setText("$ " + publicacion.getPrecio());
-        tvEstado.setText("Estado: " + publicacion.getEstado());
-        tvZona.setText("Zona: " + publicacion.getZona());
+
+        /** Listeners de publicaciones **/
+        btnIrAExplorar.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, HomeActivity.class))
+        );
+
+        btnIrAPublicarArticulo.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, PublicarArticuloActivity.class))
+        );
+
+        btnIrAMisPublicaciones.setOnClickListener(view ->
+                startActivity(
+                        new Intent(MainActivity.this, MisPublicacionesActivity.class)
+                )
+        );
+
+        btnIrAMiPerfil.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, PerfilActivity.class))
+        );
+
+        btnIrAMisOfertas.setOnClickListener(view ->
+                startActivity(MisOfertasActivity.crearIntent(MainActivity.this))
+        );
+
+        btnIrAMisFavoritos.setOnClickListener(view ->
+                startActivity(MisFavoritosActivity.crearIntent(MainActivity.this))
+        );
+
+        btnIrAHistorial.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, HistorialOperacionesActivity.class))
+        );
 
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {

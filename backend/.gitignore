@@ -2,3 +2,7 @@
 /.env
 /.idea/
 *.log
+
+# Variantes locales del .env (ej: .env.txt creado por el Bloc de notas)
+.env.*
+!.env.example
