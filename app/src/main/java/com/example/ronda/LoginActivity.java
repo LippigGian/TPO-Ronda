@@ -1,6 +1,9 @@
 package com.example.ronda;
 
 import android.content.Intent;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Patterns;
@@ -9,20 +12,35 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.textfield.TextInputLayout;
+import java.util.concurrent.Executor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
+    private static final int LOCAL_NETWORK_PERMISSION_REQUEST_CODE = 100;
+    private SessionManager sessionManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
+        sessionManager = new SessionManager(this);
+        requestLocalNetworkPermissionIfNeeded();
+
+        // Un token guardado indica que existe una sesión previa. Para reutilizarla
+        // se exige una autenticación biométrica antes de abrir el inicio.
+        if (sessionManager.getToken() != null) {
+            solicitarBiometria();
+        }
 
         EditText etEmail = findViewById(R.id.etEmail);
         EditText etPassword = findViewById(R.id.etPassword);
@@ -32,12 +50,10 @@ public class LoginActivity extends AppCompatActivity {
         Button btnRecuperarAcceso = findViewById(R.id.btnRecuperarAcceso);
         Button btnCrearCuenta = findViewById(R.id.btnCrearCuenta);
 
-
-        /** Listener para boton OTP **/
         btnOtp.setOnClickListener(view -> startActivity(
                 new Intent(LoginActivity.this, SolicitarOtpActivity.class)
         ));
-        /** Listener para boton LOGIN **/
+
         btnLogin.setOnClickListener(view -> {
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString();
@@ -57,11 +73,9 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             btnLogin.setEnabled(false);
-            /** Aplicamos retrofit y enqueue para iniciar el pedido en segundo plano**/
             ApiClient.api().login(new ApiClient.LoginRequest(email, password))
                     .enqueue(new Callback<ApiClient.LoginResponse>() {
                         @Override
-                        /** Respuesta satisfactoria esperada**/
                         public void onResponse(Call<ApiClient.LoginResponse> call,
                                                Response<ApiClient.LoginResponse> response) {
                             btnLogin.setEnabled(true);
@@ -79,7 +93,6 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        /** Respuesta fallida esperada **/
                         public void onFailure(Call<ApiClient.LoginResponse> call, Throwable error) {
                             btnLogin.setEnabled(true);
                             Log.e("LoginActivity", "Error al iniciar sesión contra el backend", error);
@@ -88,13 +101,12 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     });
         });
-        /** Listener para boton recuperar OTP **/
+
         btnRecuperarAcceso.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, SolicitarOtpActivity.class);
             intent.putExtra("OTP_PURPOSE", "RECUPERO_CONTRASENA");
             startActivity(intent);
         });
-        /**Listener para crear cuenta **/
         btnCrearCuenta.setOnClickListener(v ->
                 startActivity(new Intent(LoginActivity.this, RegistroActivity.class))
         );
@@ -106,14 +118,57 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    private void solicitarBiometria() {
+        int disponibilidad = BiometricManager.from(this)
+                .canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG);
+        if (disponibilidad != BiometricManager.BIOMETRIC_SUCCESS) {
+            Toast.makeText(this,
+                    "Configurá una huella o reconocimiento facial para desbloquear la sesión",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Executor executor = ContextCompat.getMainExecutor(this);
+        BiometricPrompt prompt = new BiometricPrompt(this, executor,
+                new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationSucceeded(
+                            BiometricPrompt.AuthenticationResult result) {
+                        super.onAuthenticationSucceeded(result);
+                        abrirInicio();
+                    }
+                });
+
+        BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                .setTitle("Desbloquear Ronda")
+                .setSubtitle("Confirmá tu identidad para continuar")
+                .setNegativeButtonText("Cancelar")
+                .build();
+        prompt.authenticate(promptInfo);
+    }
+
+    private void requestLocalNetworkPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= 37
+                && checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                    new String[]{Manifest.permission.ACCESS_LOCAL_NETWORK},
+                    LOCAL_NETWORK_PERMISSION_REQUEST_CODE
+            );
+        }
+    }
+
     /** GUARDAMOS EL TOKEN Y LOS DATOS DEL USUARIO **/
     private void saveSessionAndOpenHome(ApiClient.LoginResponse body) {
-        SessionManager sessionManager = new SessionManager(this);
         sessionManager.saveToken(body.getToken());
         if (body.getUser() != null) {
             sessionManager.saveUser(body.getUser().getId(), body.getUser().getUsername());
         }
-        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+        abrirInicio();
+    }
+
+    private void abrirInicio() {
+        startActivity(new Intent(this, MainActivity.class));
         finish();
     }
 }
