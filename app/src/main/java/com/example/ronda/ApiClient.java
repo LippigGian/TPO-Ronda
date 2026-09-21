@@ -8,7 +8,8 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public final class ApiClient {
-    private static final String BASE_URL = "http://127.0.0.1:8080/";
+    // 10.0.2.2 es la dirección especial con la que el emulador accede al localhost de la PC.
+    private static final String BASE_URL = "http://10.0.2.2:8080/";
 
     /** Preparo Retrofti para utilizar la ainterfaz RondaApi **/
     private static final RondaApi API = new Retrofit.Builder()
