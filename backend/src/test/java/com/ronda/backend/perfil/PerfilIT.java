@@ -44,7 +44,7 @@ class PerfilIT {
     @Test
     void editarElPerfilGuardaLosDatos() throws Exception {
         var response = put("/api/v1/usuarios/me",
-                "{\"nombre\":\"Demo Editado\",\"telefono\":\"11 5555 5555\",\"zona\":\"Palermo\"}");
+                "{\"email\":\"demo@ronda.com\",\"nombre\":\"Demo Editado\",\"telefono\":\"11 5555 5555\",\"zona\":\"Palermo\"}");
 
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(get("/api/v1/usuarios/me").body()).contains("\"nombre\":\"Demo Editado\"",
@@ -52,14 +52,31 @@ class PerfilIT {
     }
 
     @Test
+    void elEmailEsObligatorio() throws Exception {
+        assertThat(put("/api/v1/usuarios/me", "{\"nombre\":\"Demo\"}").statusCode()).isEqualTo(400);
+    }
+
+    @Test
     void elNombreEsObligatorio() throws Exception {
-        assertThat(put("/api/v1/usuarios/me", "{\"nombre\":\"  \"}").statusCode()).isEqualTo(400);
+        assertThat(put("/api/v1/usuarios/me", "{\"email\":\"demo@ronda.com\",\"nombre\":\"  \"}").statusCode())
+                .isEqualTo(400);
     }
 
     @Test
     void unTelefonoInvalidoSeRechaza() throws Exception {
-        assertThat(put("/api/v1/usuarios/me", "{\"nombre\":\"Demo\",\"telefono\":\"abc\"}").statusCode())
+        assertThat(put("/api/v1/usuarios/me",
+                "{\"email\":\"demo@ronda.com\",\"nombre\":\"Demo\",\"telefono\":\"abc\"}").statusCode())
                 .isEqualTo(400);
+    }
+
+    @Test
+    void cambiarElEmailAUnoYaUsadoPorOtraCuentaSeRechaza() throws Exception {
+        var response = put("/api/v1/usuarios/me",
+                "{\"email\":\"vendedor@ronda.com\",\"nombre\":\"Demo\"}");
+
+        assertThat(response.statusCode()).isEqualTo(409);
+        // El email de la cuenta no debe haber cambiado.
+        assertThat(get("/api/v1/usuarios/me").body()).contains("\"email\":\"demo@ronda.com\"");
     }
 
     @Test

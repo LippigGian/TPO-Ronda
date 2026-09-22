@@ -21,7 +21,7 @@ public interface PerfilApi {
     Call<PerfilModels.MiPerfil> obtenerMiPerfil();
 
     @PUT("api/v1/usuarios/me")
-    Call<PerfilModels.MiPerfil> actualizarMiPerfil(@Body PerfilModels.ActualizarPerfilRequest request);
+    Call<PerfilModels.ActualizarPerfilResponse> actualizarMiPerfil(@Body PerfilModels.ActualizarPerfilRequest request);
 
     @Multipart
     @POST("api/v1/usuarios/me/foto")

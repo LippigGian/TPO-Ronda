@@ -10,15 +10,26 @@ public final class PerfilModels {
     private PerfilModels() { }
 
     public static final class ActualizarPerfilRequest {
+        private final String email;
         private final String nombre;
         private final String telefono;
         private final String zona;
 
-        public ActualizarPerfilRequest(String nombre, String telefono, String zona) {
+        public ActualizarPerfilRequest(String email, String nombre, String telefono, String zona) {
+            this.email = email;
             this.nombre = nombre;
             this.telefono = telefono;
             this.zona = zona;
         }
+    }
+
+    /** Respuesta de PUT /me. token viene con valor solo si el email cambio (ver PerfilDtos.ActualizarPerfilResponse). */
+    public static final class ActualizarPerfilResponse {
+        private MiPerfil perfil;
+        private String token;
+
+        public MiPerfil getPerfil() { return perfil; }
+        public String getToken() { return token; }
     }
 
     public static final class Reputacion {

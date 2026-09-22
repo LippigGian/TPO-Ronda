@@ -38,4 +38,5 @@ public class Usuario {
     public boolean isActivo() { return activo; }
     public Instant getCreatedAt() { return createdAt; }
     public void verificarEmail() { this.emailVerificado = true; }
+    public void cambiarEmail(String nuevoEmail) { this.email = nuevoEmail; }
 }
