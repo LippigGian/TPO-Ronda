@@ -2,6 +2,7 @@ package com.ronda.backend.perfil;
 
 import com.ronda.backend.publicacion.EstadoArticulo;
 import com.ronda.backend.publicacion.Publicacion;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -14,10 +15,19 @@ public final class PerfilDtos {
     private PerfilDtos() { }
 
     public record ActualizarPerfilRequest(
+            // Mismas reglas que AuthDtos.RegisterRequest, ya que el email tambien identifica la cuenta.
+            @NotBlank @Email @Size(max = 320) String email,
             @NotBlank @Size(max = 120) String nombre,
             // Opcional: vacio o entre 6 y 30 caracteres de digitos, espacios, +, -, ( y ).
             @Size(max = 30) @Pattern(regexp = "^$|^[0-9+()\\s-]{6,30}$") String telefono,
             @Size(max = 120) String zona) { }
+
+    /**
+     * Respuesta de actualizarMiPerfil. token viene con valor solo cuando el email cambio:
+     * el JWT anterior queda invalido (su subject es el email viejo), asi el front
+     * puede guardar la sesion nueva sin pedir relogin.
+     */
+    public record ActualizarPerfilResponse(MiPerfilResponse perfil, String token) { }
 
     /**
      * Reputacion calculada, nunca almacenada.

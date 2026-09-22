@@ -3,6 +3,7 @@ package com.example.ronda.perfil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.example.ronda.ApiClient;
 import com.example.ronda.ConnectivityObserver;
 import com.example.ronda.R;
+import com.example.ronda.SessionManager;
 import com.example.ronda.util.ApiCallback;
 import com.example.ronda.util.MultipartHelper;
 import com.google.android.material.button.MaterialButton;
@@ -36,6 +38,7 @@ public class PerfilActivity extends AppCompatActivity {
     private static final String REGEX_TELEFONO = "^[0-9+()\\s-]{6,30}$";
 
     private PerfilApi api;
+    private SessionManager sessionManager;
     private ActivityResultLauncher<String> selectorFoto;
     private long miUsuarioId = -1;
 
@@ -43,6 +46,7 @@ public class PerfilActivity extends AppCompatActivity {
     private TextView tvEstrellas;
     private TextView tvOperaciones;
     private TextView tvMiembroDesde;
+    private TextInputLayout tilEmail;
     private TextInputLayout tilNombre;
     private TextInputLayout tilTelefono;
     private TextInputEditText etEmail;
@@ -60,6 +64,7 @@ public class PerfilActivity extends AppCompatActivity {
         aplicarInsets();
 
         api = ApiClient.crearServicio(PerfilApi.class);
+        sessionManager = new SessionManager(this);
         vincularVistas();
 
         // Abre la galeria; cuando el usuario elige una imagen, se sube al backend.
@@ -94,6 +99,7 @@ public class PerfilActivity extends AppCompatActivity {
         tvEstrellas = findViewById(R.id.tvEstrellas);
         tvOperaciones = findViewById(R.id.tvOperaciones);
         tvMiembroDesde = findViewById(R.id.tvMiembroDesde);
+        tilEmail = findViewById(R.id.tilEmail);
         tilNombre = findViewById(R.id.tilNombre);
         tilTelefono = findViewById(R.id.tilTelefono);
         etEmail = findViewById(R.id.etEmail);
@@ -102,7 +108,6 @@ public class PerfilActivity extends AppCompatActivity {
         etZona = findViewById(R.id.etZona);
         btnGuardar = findViewById(R.id.btnGuardarPerfil);
         btnCambiarFoto = findViewById(R.id.btnCambiarFoto);
-        etEmail.setEnabled(false);
     }
 
     // ---------- Llamadas al backend ----------
@@ -123,14 +128,18 @@ public class PerfilActivity extends AppCompatActivity {
         }
 
         PerfilModels.ActualizarPerfilRequest request = new PerfilModels.ActualizarPerfilRequest(
-                texto(etNombre), texto(etTelefono), texto(etZona));
+                texto(etEmail), texto(etNombre), texto(etTelefono), texto(etZona));
 
         btnGuardar.setEnabled(false);
-        api.actualizarMiPerfil(request).enqueue(new ApiCallback<PerfilModels.MiPerfil>(this, "No se pudo guardar el perfil") {
+        api.actualizarMiPerfil(request).enqueue(new ApiCallback<PerfilModels.ActualizarPerfilResponse>(this, "No se pudo guardar el perfil") {
             @Override
-            protected void onExito(PerfilModels.MiPerfil perfil) {
-                mostrarDatos(perfil);
-                mostrarEncabezado(perfil);
+            protected void onExito(PerfilModels.ActualizarPerfilResponse respuesta) {
+                // Si el email cambio, el backend reemite el token (el anterior queda invalido).
+                if (respuesta.getToken() != null) {
+                    sessionManager.saveToken(respuesta.getToken());
+                }
+                mostrarDatos(respuesta.getPerfil());
+                mostrarEncabezado(respuesta.getPerfil());
                 Toast.makeText(PerfilActivity.this, "Perfil actualizado", Toast.LENGTH_SHORT).show();
             }
 
@@ -196,8 +205,18 @@ public class PerfilActivity extends AppCompatActivity {
     private boolean formularioValido() {
         boolean valido = true;
 
+        tilEmail.setError(null);
         tilNombre.setError(null);
         tilTelefono.setError(null);
+
+        String email = texto(etEmail);
+        if (TextUtils.isEmpty(email)) {
+            tilEmail.setError("Ingresá tu email");
+            valido = false;
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            tilEmail.setError("Ingresá un email válido");
+            valido = false;
+        }
 
         if (TextUtils.isEmpty(texto(etNombre))) {
             tilNombre.setError("Ingresá tu nombre");

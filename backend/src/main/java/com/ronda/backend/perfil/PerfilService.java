@@ -1,5 +1,6 @@
 package com.ronda.backend.perfil;
 
+import com.ronda.backend.auth.JwtService;
 import com.ronda.backend.auth.Usuario;
 import com.ronda.backend.auth.UsuarioRepository;
 import com.ronda.backend.publicacion.EstadoPublicacion;
@@ -21,15 +22,17 @@ public class PerfilService {
     private final PerfilPublicacionRepository publicaciones;
     private final ReputacionPerfilService reputacionService;
     private final FotoStorageService fotos;
+    private final JwtService jwtService;
 
     public PerfilService(UsuarioRepository usuarios, PerfilRepository perfiles,
                          PerfilPublicacionRepository publicaciones, ReputacionPerfilService reputacionService,
-                         FotoStorageService fotos) {
+                         FotoStorageService fotos, JwtService jwtService) {
         this.usuarios = usuarios;
         this.perfiles = perfiles;
         this.publicaciones = publicaciones;
         this.reputacionService = reputacionService;
         this.fotos = fotos;
+        this.jwtService = jwtService;
     }
 
     @Transactional(readOnly = true)
@@ -39,12 +42,33 @@ public class PerfilService {
     }
 
     @Transactional
-    public PerfilDtos.MiPerfilResponse actualizarMiPerfil(String email, PerfilDtos.ActualizarPerfilRequest request) {
+    public PerfilDtos.ActualizarPerfilResponse actualizarMiPerfil(String email, PerfilDtos.ActualizarPerfilRequest request) {
         Usuario usuario = buscarPorEmail(email);
         Perfil perfil = obtenerOCrear(usuario);
+
+        String tokenNuevo = actualizarEmailSiCambio(usuario, request.email());
+
         perfil.actualizarDatos(limpiar(request.nombre()), limpiar(request.telefono()), limpiar(request.zona()));
         perfiles.save(perfil);
-        return armarMiPerfil(usuario, perfil);
+        return new PerfilDtos.ActualizarPerfilResponse(armarMiPerfil(usuario, perfil), tokenNuevo);
+    }
+
+    /**
+     * Actualiza el email de la cuenta si vino distinto al actual, validando que no
+     * este en uso por otro usuario. Devuelve un JWT nuevo (subject = email nuevo)
+     * cuando hubo cambio, o null si el email se mantuvo igual.
+     */
+    private String actualizarEmailSiCambio(Usuario usuario, String emailSolicitado) {
+        String nuevoEmail = emailSolicitado.trim().toLowerCase();
+        if (nuevoEmail.equalsIgnoreCase(usuario.getEmail())) {
+            return null;
+        }
+        if (usuarios.existsByEmailIgnoreCase(nuevoEmail)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ese email ya está en uso");
+        }
+        usuario.cambiarEmail(nuevoEmail);
+        usuarios.save(usuario);
+        return jwtService.createToken(usuario);
     }
 
     @Transactional

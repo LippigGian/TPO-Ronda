@@ -26,8 +26,8 @@ public class PerfilController {
     }
 
     @PutMapping("/me")
-    public PerfilDtos.MiPerfilResponse actualizarMiPerfil(@AuthenticationPrincipal UserDetails user,
-                                                          @Valid @RequestBody PerfilDtos.ActualizarPerfilRequest request) {
+    public PerfilDtos.ActualizarPerfilResponse actualizarMiPerfil(@AuthenticationPrincipal UserDetails user,
+                                                                   @Valid @RequestBody PerfilDtos.ActualizarPerfilRequest request) {
         return service.actualizarMiPerfil(user.getUsername(), request);
     }
 
