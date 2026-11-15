@@ -3,6 +3,7 @@ package com.ronda.backend.oferta;
 import com.ronda.backend.publicacion.EstadoPublicacion;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,6 +20,10 @@ public interface OfertaRepository extends JpaRepository<Oferta, Long> {
     boolean existsByPublicacionIdAndEstado(Long publicacionId, EstadoOferta estado);
 
     boolean existsByPublicacionIdAndCompradorIdAndEstado(Long publicacionId, Long compradorId, EstadoOferta estado);
+
+    /** Oferta aceptada del comprador: la usa el cierre de la operacion con QR. */
+    Optional<Oferta> findFirstByPublicacionIdAndCompradorIdAndEstado(Long publicacionId, Long compradorId,
+                                                                     EstadoOferta estado);
 
     /** Compras concretadas: ofertas aceptadas como comprador sobre publicaciones ya vendidas. */
     long countByCompradorIdAndEstadoAndPublicacionEstadoPublicacion(Long compradorId, EstadoOferta estado,

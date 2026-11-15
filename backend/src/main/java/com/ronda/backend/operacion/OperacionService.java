@@ -2,11 +2,15 @@ package com.ronda.backend.operacion;
 
 import com.ronda.backend.auth.Usuario;
 import com.ronda.backend.auth.UsuarioRepository;
+import com.ronda.backend.oferta.EstadoOferta;
+import com.ronda.backend.oferta.Oferta;
+import com.ronda.backend.oferta.OfertaRepository;
 import com.ronda.backend.publicacion.EstadoPublicacion;
 import com.ronda.backend.publicacion.Publicacion;
 import com.ronda.backend.publicacion.PublicacionRepository;
 import java.time.Instant;
 import java.util.List;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,36 +22,56 @@ public class OperacionService {
     private final PublicacionRepository publicaciones;
     private final UsuarioRepository usuarios;
     private final CalificacionRepository calificaciones;
+    private final OfertaRepository ofertas;
 
     public OperacionService(OperacionRepository operaciones, PublicacionRepository publicaciones,
-                             UsuarioRepository usuarios, CalificacionRepository calificaciones) {
+                             UsuarioRepository usuarios, CalificacionRepository calificaciones,
+                             OfertaRepository ofertas) {
         this.operaciones = operaciones;
         this.publicaciones = publicaciones;
         this.usuarios = usuarios;
         this.calificaciones = calificaciones;
+        this.ofertas = ofertas;
     }
 
+    /**
+     * Cierre de la operacion con QR: el comprador escanea el QR fisico de la entrega para confirmar
+     * que recibio el articulo. Valida el codigo, registra la operacion con el precio de la oferta
+     * aceptada y deja la publicacion VENDIDA, todo en la misma transaccion.
+     */
     @Transactional
-    public OperacionDtos.HistorialItemResponse vender(String email, Long publicacionId, OperacionDtos.VenderRequest request) {
-        Usuario vendedor = findUser(email);
-        Publicacion publicacion = publicaciones.findByIdAndVendedorId(publicacionId, vendedor.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Publicación no encontrada"));
+    public OperacionDtos.HistorialItemResponse confirmarRecepcion(String email, OperacionDtos.ConfirmarRecepcionRequest request) {
+        Usuario comprador = findUser(email);
+        Long publicacionId = CodigoEntrega.publicacionId(request.codigo())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Código inválido: no es un QR de entrega de Ronda"));
+        Publicacion publicacion = publicaciones.findById(publicacionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Código inválido: no corresponde a ninguna publicación"));
 
         if (publicacion.getEstadoPublicacion() == EstadoPublicacion.VENDIDA) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "La publicación ya fue vendida");
+            boolean esMiCompra = operaciones.findByPublicacionId(publicacionId)
+                    .map(op -> op.getComprador().getId().equals(comprador.getId()))
+                    .orElse(false);
+            throw esMiCompra
+                    ? new ResponseStatusException(HttpStatus.CONFLICT, "Ya confirmaste la recepción de este artículo")
+                    : noEsTuCompra();
         }
 
-        Usuario comprador = usuarios.findByEmailIgnoreCase(request.compradorEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró un usuario con ese email"));
-
-        if (comprador.getId().equals(vendedor.getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El comprador no puede ser el mismo vendedor");
-        }
+        Oferta oferta = ofertas.findFirstByPublicacionIdAndCompradorIdAndEstado(
+                        publicacionId, comprador.getId(), EstadoOferta.ACEPTADA)
+                .orElseThrow(this::noEsTuCompra);
 
         publicacion.cambiarEstado(EstadoPublicacion.VENDIDA);
-        Operacion operacion = operaciones.save(new Operacion(publicacion, vendedor, comprador, request.montoFinal()));
-
-        return toHistorialItem(operacion, vendedor.getId());
+        Operacion operacion;
+        try {
+            operacion = operaciones.saveAndFlush(
+                    new Operacion(publicacion, publicacion.getVendedor(), comprador, oferta.getPrecio()));
+        } catch (DataIntegrityViolationException carrera) {
+            // Dos escaneos simultaneos: la restriccion unica de operaciones.publicacion_id frena el segundo.
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya confirmaste la recepción de este artículo");
+        }
+        return toHistorialItem(operacion, comprador.getId());
     }
 
     @Transactional(readOnly = true)
@@ -98,6 +122,11 @@ public class OperacionService {
                 contraparte.getNombreUsuario(),
                 yaCalificada,
                 puedeCalificar ? limite : null);
+    }
+
+    private ResponseStatusException noEsTuCompra() {
+        return new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "Código inválido: este artículo no corresponde a una compra tuya con oferta aceptada");
     }
 
     private Usuario findUser(String email) {

@@ -16,11 +16,13 @@ public class OperacionController {
         this.service = service;
     }
 
-    @PostMapping("/api/v1/publicaciones/{id}/venta")
+    /** Cierre con QR: el comprador envia el texto del QR fisico de la entrega. */
+    @PostMapping("/api/v1/operaciones/confirmar-recepcion")
     @ResponseStatus(HttpStatus.CREATED)
-    public OperacionDtos.HistorialItemResponse vender(@AuthenticationPrincipal UserDetails user, @PathVariable Long id,
-                                                        @Valid @RequestBody OperacionDtos.VenderRequest request) {
-        return service.vender(user.getUsername(), id, request);
+    public OperacionDtos.HistorialItemResponse confirmarRecepcion(
+            @AuthenticationPrincipal UserDetails user,
+            @Valid @RequestBody OperacionDtos.ConfirmarRecepcionRequest request) {
+        return service.confirmarRecepcion(user.getUsername(), request);
     }
 
     @GetMapping("/api/v1/operaciones/historial")

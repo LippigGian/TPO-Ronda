@@ -94,6 +94,14 @@ public class PublicacionService {
         Usuario vendedor = findUser(email);
         Publicacion publicacion = publicaciones.findByIdAndVendedorId(id, vendedor.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Publicación no encontrada"));
+        // La venta solo se cierra cuando el comprador escanea el QR de entrega (OperacionService.confirmarRecepcion).
+        if (request.estado() == EstadoPublicacion.VENDIDA) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La venta se confirma cuando el comprador escanea el QR de entrega");
+        }
+        if (publicacion.getEstadoPublicacion() == EstadoPublicacion.VENDIDA) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "La publicación ya fue vendida");
+        }
         publicacion.cambiarEstado(request.estado());
         return PublicacionDtos.Response.from(publicacion);
     }
