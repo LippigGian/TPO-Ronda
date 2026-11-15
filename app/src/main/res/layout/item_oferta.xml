@@ -157,5 +157,18 @@
             android:textAllCaps="false"
             android:visibility="gone"
             app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirmarRecepcion"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Recibí el artículo · Escanear QR"
+            android:textAllCaps="false"
+            android:textColor="@color/ronda_primary"
+            android:visibility="gone"
+            app:cornerRadius="12dp"
+            app:strokeColor="@color/ronda_primary" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

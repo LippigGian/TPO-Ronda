@@ -11,18 +11,18 @@ import java.util.regex.Pattern;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /** Cliente HTTP compartido por los tests de ofertas, con el mismo estilo que los IT del resto del equipo. */
-final class OfertaTestClient {
-    static final String COMPRADOR = "demo@ronda.com";
-    static final String VENDEDOR = "vendedor@ronda.com";
+public final class OfertaTestClient {
+    public static final String COMPRADOR = "demo@ronda.com";
+    public static final String VENDEDOR = "vendedor@ronda.com";
     private static final String PASSWORD = "ronda123";
 
     private final int port;
 
-    OfertaTestClient(int port) {
+    public OfertaTestClient(int port) {
         this.port = port;
     }
 
-    String login(String email) throws Exception {
+    public String login(String email) throws Exception {
         var response = send(request("/api/v1/auth/login").header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(
                         "{\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}")));
@@ -34,7 +34,7 @@ final class OfertaTestClient {
      * Usa una categoria propia para no contaminar los filtros de ExplorarPublicacionesIT,
      * que comparte la misma base y se basa en las publicaciones de V11.
      */
-    long crearPublicacion(String token, int precio) throws Exception {
+    public long crearPublicacion(String token, int precio) throws Exception {
         var response = post("/api/v1/publicaciones", token, """
                 {"titulo":"Artículo para ofertas","descripcion":"Prueba de negociación","categoria":"Pruebas ofertas",
                  "precio":%d,"estadoArticulo":"USADO","direccion":"Gorriti 4500, Palermo",
@@ -44,32 +44,32 @@ final class OfertaTestClient {
         return Long.parseLong(primerGrupo("\"id\":(\\d+)", response.body()));
     }
 
-    HttpResponse<String> ofertar(String token, long publicacionId, int precio) throws Exception {
+    public HttpResponse<String> ofertar(String token, long publicacionId, int precio) throws Exception {
         return post("/api/v1/publicaciones/" + publicacionId + "/ofertas", token,
                 "{\"precio\":" + precio + ",\"mensaje\":\"¿Lo dejás en este precio?\"}");
     }
 
     /** El primer "id" del JSON de una oferta es el de la oferta (primer campo del record). */
-    static long idDe(HttpResponse<String> response) {
+    public static long idDe(HttpResponse<String> response) {
         return Long.parseLong(primerGrupo("\"id\":(\\d+)", response.body()));
     }
 
-    HttpResponse<String> get(String path, String token) throws Exception {
+    public HttpResponse<String> get(String path, String token) throws Exception {
         return send(request(path).header("Authorization", "Bearer " + token).GET());
     }
 
-    HttpResponse<String> post(String path, String token, String json) throws Exception {
+    public HttpResponse<String> post(String path, String token, String json) throws Exception {
         return send(request(path).header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(json)));
     }
 
-    HttpResponse<String> postSinCuerpo(String path, String token) throws Exception {
+    public HttpResponse<String> postSinCuerpo(String path, String token) throws Exception {
         return send(request(path).header("Authorization", "Bearer " + token)
                 .POST(HttpRequest.BodyPublishers.noBody()));
     }
 
-    HttpResponse<String> sinSesion(String path) throws Exception {
+    public HttpResponse<String> sinSesion(String path) throws Exception {
         return send(request(path).GET());
     }
 

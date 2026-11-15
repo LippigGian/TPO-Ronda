@@ -62,9 +62,16 @@ public final class OfertaFormatter {
     public static String situacion(OfertaModels.Oferta oferta) {
         switch (oferta.getEstado()) {
             case OfertaModels.ACEPTADA:
+                if (oferta.ventaConfirmada()) {
+                    return oferta.soyComprador()
+                            ? "Recepción confirmada. La compra quedó registrada en tu historial."
+                            : "Venta concretada: el comprador confirmó la recepción.";
+                }
                 return oferta.soyComprador()
-                        ? "¡Trato cerrado! Ya podés ver el punto de entrega."
-                        : "Trato cerrado. El comprador ya puede ver el punto de entrega.";
+                        ? "¡Trato cerrado! Ya podés ver el punto de entrega. Cuando recibas el artículo, "
+                                + "escaneá el QR del vendedor."
+                        : "Trato cerrado. La venta se confirma cuando el comprador escanee tu QR de entrega "
+                                + "con el texto RONDA-ENTREGA-" + oferta.getPublicacion().getId() + ".";
             case OfertaModels.RECHAZADA:
                 return "La negociación terminó sin acuerdo.";
             case OfertaModels.VENCIDA:

@@ -86,11 +86,10 @@ public interface RondaApi {
     @GET("api/v1/usuarios/buscar")
     Call<ApiClient.BuscarUsuarioResponse> buscarUsuario(@Query("email") String email);
 
-    /** Ventas / historial de operaciones **/
-    @POST("api/v1/publicaciones/{id}/venta")
-    Call<ApiClient.HistorialItemResponse> venderPublicacion(
-            @Path("id") long id,
-            @Body ApiClient.VenderRequest request
+    /** Operaciones: cierre con QR e historial **/
+    @POST("api/v1/operaciones/confirmar-recepcion")
+    Call<ApiClient.HistorialItemResponse> confirmarRecepcion(
+            @Body ApiClient.ConfirmarRecepcionRequest request
     );
 
     @GET("api/v1/operaciones/historial")

@@ -10,9 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,33 +44,47 @@ class OperacionControllerTest {
     }
 
     @Test
-    void venderRequiresAuthentication() throws Exception {
-        mvc.perform(post("/api/v1/publicaciones/2/venta")
+    void confirmarRecepcionRequiresAuthentication() throws Exception {
+        mvc.perform(post("/api/v1/operaciones/confirmar-recepcion")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"compradorEmail\":\"comprador@test.com\",\"montoFinal\":100.00}"))
+                        .content("{\"codigo\":\"RONDA-ENTREGA-2\"}"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void venderReturnsCreatedOperation() throws Exception {
-        when(service.vender(eq("vendedor@test.com"), eq(2L), any())).thenReturn(item());
+    void confirmarRecepcionReturnsCreatedOperation() throws Exception {
+        when(service.confirmarRecepcion(eq("comprador@test.com"), any())).thenReturn(item());
 
-        mvc.perform(post("/api/v1/publicaciones/2/venta")
-                        .with(user("vendedor@test.com"))
+        mvc.perform(post("/api/v1/operaciones/confirmar-recepcion")
+                        .with(user("comprador@test.com"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"compradorEmail\":\"comprador@test.com\",\"montoFinal\":100.00}"))
+                        .content("{\"codigo\":\"RONDA-ENTREGA-2\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.tipo").value("VENTA"))
+                .andExpect(jsonPath("$.publicacionTitulo").value("Bici"))
                 .andExpect(jsonPath("$.contraparteNombre").value("comprador"));
     }
 
     @Test
-    void venderRejectsInvalidBody() throws Exception {
-        mvc.perform(post("/api/v1/publicaciones/2/venta")
-                        .with(user("vendedor@test.com"))
+    void confirmarRecepcionRejectsEmptyCodeWithReadableMessage() throws Exception {
+        mvc.perform(post("/api/v1/operaciones/confirmar-recepcion")
+                        .with(user("comprador@test.com"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"compradorEmail\":\"no-es-un-email\",\"montoFinal\":100.00}"))
-                .andExpect(status().isBadRequest());
+                        .content("{\"codigo\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Código inválido: el QR está vacío"));
+    }
+
+    @Test
+    void confirmarRecepcionExposesBusinessErrorDetail() throws Exception {
+        when(service.confirmarRecepcion(eq("comprador@test.com"), any())).thenThrow(
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código inválido: no es un QR de entrega de Ronda"));
+
+        mvc.perform(post("/api/v1/operaciones/confirmar-recepcion")
+                        .with(user("comprador@test.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"cualquier cosa\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Código inválido: no es un QR de entrega de Ronda"));
     }
 
     @Test

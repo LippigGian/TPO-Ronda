@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <!-- ===== Escaneo ===== -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewQr"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <View
+        android:layout_width="260dp"
+        android:layout_height="260dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_marco_qr" />
+
+    <LinearLayout
+        android:id="@+id/grupoEncabezadoQr"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#99000000"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Escaneá el QR de entrega"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvArticuloQr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#DDFFFFFF"
+            android:textSize="15sp"
+            tools:text="Confirmá que recibiste «Bicicleta rodado 29»" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvAvisoCamara"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="40dp"
+        android:gravity="center"
+        android:text="Sin acceso a la cámara. Para confirmar la recepción, permití el acceso a la cámara desde Ajustes."
+        android:textColor="@android:color/white"
+        android:textSize="15sp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/grupoPieQr"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#99000000"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Apuntá la cámara al QR del vendedor. Se lee solo."
+            android:textColor="#DDFFFFFF"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelarQr"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Cancelar"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progresoQr"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <!-- ===== Resultado ===== -->
+    <LinearLayout
+        android:id="@+id/panelResultadoQr"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/ronda_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvIconoResultadoQr"
+            android:layout_width="104dp"
+            android:layout_height="104dp"
+            android:background="@drawable/bg_icono_resultado"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="52sp"
+            android:textStyle="bold"
+            tools:backgroundTint="@color/ronda_success"
+            tools:text="✓" />
+
+        <TextView
+            android:id="@+id/tvTituloResultadoQr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:textColor="@color/ronda_text_primary"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            tools:text="Operación confirmada" />
+
+        <TextView
+            android:id="@+id/tvMensajeResultadoQr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:textColor="@color/ronda_text_secondary"
+            android:textSize="16sp"
+            tools:text="Recibiste «Bicicleta». Se registró la compra por $ 80.000 al vendedor Juan." />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPrimarioResultadoQr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="@color/ronda_primary"
+            android:textAllCaps="false"
+            app:cornerRadius="12dp"
+            tools:text="Calificar al vendedor" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSecundarioResultadoQr"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAllCaps="false"
+            android:textColor="@color/ronda_primary"
+            app:cornerRadius="12dp"
+            app:strokeColor="@color/ronda_primary"
+            tools:text="Volver a mis ofertas" />
+    </LinearLayout>
+</FrameLayout>
