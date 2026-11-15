@@ -45,7 +45,15 @@ public final class PerfilDtos {
     /** Perfil publico: lo ve cualquier usuario, por eso NO incluye email ni telefono. */
     public record PerfilPublicoResponse(Long id, String nombre, String zona, String foto,
                                         Instant miembroDesde, Reputacion reputacion,
-                                        List<PublicacionResumen> publicacionesActivas) { }
+                                        List<PublicacionResumen> publicacionesActivas,
+                                        List<CalificacionRecibida> calificaciones) { }
+
+    /**
+     * Una calificacion que recibio el usuario, tal como se ve en su perfil publico.
+     * rolAutor es lo que fue quien califico en esa operacion: COMPRADOR o VENDEDOR.
+     */
+    public record CalificacionRecibida(int puntaje, String comentario, String autorNombre, String rolAutor,
+                                       String publicacionTitulo, Instant fecha) { }
 
     /** Version liviana de una publicacion para listarla dentro del perfil publico. */
     public record PublicacionResumen(Long id, String titulo, BigDecimal precio,

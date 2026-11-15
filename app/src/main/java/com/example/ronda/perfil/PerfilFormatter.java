@@ -47,6 +47,36 @@ public final class PerfilFormatter {
         }
     }
 
+    /** Ej: puntaje 4 → "★★★★☆". */
+    public static String estrellasDePuntaje(int puntaje) {
+        int lleno = Math.max(0, Math.min(5, puntaje));
+        StringBuilder texto = new StringBuilder();
+        for (int i = 0; i < 5; i++) {
+            texto.append(i < lleno ? '★' : '☆');
+        }
+        return texto.toString();
+    }
+
+    /** Ej: "Ana · Comprador de «Bicicleta» · 12/11/2026". */
+    public static String autorCalificacion(PerfilModels.CalificacionRecibida calificacion) {
+        String rol = "VENDEDOR".equals(calificacion.getRolAutor()) ? "Vendedor" : "Comprador";
+        return calificacion.getAutorNombre() + " · " + rol + " de «" + calificacion.getPublicacionTitulo() + "»"
+                + fechaCorta(calificacion.getFecha());
+    }
+
+    /** " · 12/11/2026" a partir de una fecha ISO-8601, o "" si no se puede leer. */
+    private static String fechaCorta(String fechaIso) {
+        if (fechaIso == null || fechaIso.length() < 10) {
+            return "";
+        }
+        try {
+            Date fecha = new SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(fechaIso.substring(0, 10));
+            return " · " + new SimpleDateFormat("dd/MM/yyyy", ES_AR).format(fecha);
+        } catch (ParseException e) {
+            return "";
+        }
+    }
+
     public static String precio(double precio) {
         return String.format(ES_AR, "$ %,.2f", precio);
     }

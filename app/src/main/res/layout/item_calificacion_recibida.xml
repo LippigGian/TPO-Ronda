@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Una calificacion recibida en el perfil publico: estrellas, autor/articulo/fecha y comentario opcional. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="@color/ronda_surface"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="1dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvEstrellasCalificacion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/ronda_primary"
+            android:textSize="18sp"
+            tools:text="★★★★☆" />
+
+        <TextView
+            android:id="@+id/tvAutorCalificacion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/ronda_text_secondary"
+            android:textSize="13sp"
+            tools:text="Ana · Comprador de «Bicicleta» · 12/11/2026" />
+
+        <TextView
+            android:id="@+id/tvComentarioCalificacion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/ronda_text_primary"
+            android:textSize="15sp"
+            android:textStyle="italic"
+            tools:text="“Muy buena atención, todo como se describía.”" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

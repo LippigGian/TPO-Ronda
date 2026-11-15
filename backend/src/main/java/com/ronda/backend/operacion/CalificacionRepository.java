@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 public interface CalificacionRepository extends JpaRepository<Calificacion, Long> {
     boolean existsByOperacionIdAndAutorId(Long operacionId, Long autorId);
     List<Calificacion> findByReceptorIdOrderByCreatedAtDesc(Long receptorId);
+    /** Ultimas calificaciones recibidas, para mostrarlas en el perfil publico. */
+    List<Calificacion> findTop20ByReceptorIdOrderByCreatedAtDesc(Long receptorId);
     long countByReceptorId(Long receptorId);
 
     @Query("SELECT AVG(c.puntaje) FROM Calificacion c WHERE c.receptor.id = :receptorId")
