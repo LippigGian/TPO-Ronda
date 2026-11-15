@@ -39,7 +39,7 @@ Las rutas de publicaciones requieren un JWT válido, excepto la lectura de archi
 | --- | --- | --- |
 | `POST` | `/api/v1/publicaciones` | Crea una publicación para el usuario autenticado. |
 | `GET` | `/api/v1/publicaciones/mias` | Lista las publicaciones propias, incluidas pausadas o vendidas. |
-| `PATCH` | `/api/v1/publicaciones/{id}/estado` | Cambia el estado a `ACTIVA`, `PAUSADA` o `VENDIDA`. |
+| `PATCH` | `/api/v1/publicaciones/{id}/estado` | Cambia el estado a `ACTIVA` o `PAUSADA`. `VENDIDA` solo se alcanza con el cierre por QR. |
 | `POST` | `/api/v1/publicaciones/{id}/fotos` | Carga de 1 a 5 fotos con `multipart/form-data`, usando la clave `fotos`. |
 | `GET` | `/api/v1/publicaciones` | Home: listado paginado de publicaciones activas con búsqueda, filtros y orden. |
 | `GET` | `/api/v1/publicaciones/{id}` | Detalle: fotos, descripción, vendedor con reputación y permiso sobre la dirección. |
@@ -102,6 +102,31 @@ aceptar, rechazar o contraofertar. Cada contraoferta le pasa el turno a la otra 
   publicación pasa a mostrar la dirección exacta al comprador.
 - Los errores de estos endpoints devuelven el motivo en el campo `detail`
   (por ejemplo, "Tenés que esperar la respuesta de la otra parte").
+
+## Cierre de la operación con QR
+
+La venta se cierra cuando el comprador escanea, con la cámara de la app, el QR físico de la entrega.
+El QR no lo genera la app: lo imprime el vendedor y su contenido es el texto `RONDA-ENTREGA-{idPublicacion}`
+(por ejemplo `RONDA-ENTREGA-12`). Se toleran espacios alrededor y minúsculas.
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| `POST` | `/api/v1/operaciones/confirmar-recepcion` | Body `{"codigo":"RONDA-ENTREGA-12"}`. Lo envía el comprador. |
+
+Si el código es válido y quien escanea es el comprador con la oferta aceptada, en una sola transacción
+se registra la operación (con el precio de la oferta aceptada) y la publicación pasa a `VENDIDA`.
+La operación aparece en el historial de ambas partes y habilita las calificaciones.
+Los errores devuelven el motivo en `detail`:
+
+| Estado | Motivo |
+| --- | --- |
+| `400` | El texto no tiene el formato de un QR de entrega de Ronda. |
+| `404` | El QR corresponde a una publicación que no existe. |
+| `403` | Quien escanea no es el comprador con la oferta aceptada (incluye al propio vendedor). |
+| `409` | La recepción ya se había confirmado. |
+
+El vendedor ya no puede marcar una publicación como `VENDIDA` a mano: `PATCH /estado` con `VENDIDA`
+devuelve 400, y una publicación vendida no puede volver a `ACTIVA` ni a `PAUSADA`.
 
 ## Opcion A: ejecutar todo con Docker Desktop
 
