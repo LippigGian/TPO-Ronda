@@ -53,7 +53,7 @@
         android:layout_gravity="center"
         android:layout_marginHorizontal="40dp"
         android:gravity="center"
-        android:text="Sin acceso a la cámara. Permitilo desde Ajustes o elegí una imagen del QR desde la galería."
+        android:text="Sin acceso a la cámara. Para confirmar la recepción, permití el acceso a la cámara desde Ajustes."
         android:textColor="@android:color/white"
         android:textSize="15sp"
         android:visibility="gone" />
@@ -76,20 +76,11 @@
             android:textSize="14sp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnElegirImagenQr"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="@color/ronda_primary"
-            android:text="Elegir imagen de la galería"
-            android:textAllCaps="false"
-            app:cornerRadius="12dp" />
-
-        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancelarQr"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:text="Cancelar"
             android:textAllCaps="false"
             android:textColor="@android:color/white" />

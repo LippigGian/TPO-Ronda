@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -35,9 +34,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
-import com.google.mlkit.vision.common.InputImage;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -49,8 +46,8 @@ import retrofit2.Response;
 
 /**
  * Cierre de la operación con QR: el comprador escanea el QR físico de entrega para confirmar que
- * recibió el artículo. La app no genera el QR: lo lee con la cámara (o desde una imagen de la galería)
- * y envía su texto al backend, que valida y cierra la operación.
+ * recibió el artículo. La app no genera el QR: lo lee con la cámara (solo cámara, no desde imágenes
+ * guardadas) y envía su texto al backend, que valida y cierra la operación.
  *
  * Formato esperado del QR: "RONDA-ENTREGA-{idPublicacion}".
  */
@@ -90,13 +87,6 @@ public class ConfirmarRecepcionActivity extends AppCompatActivity {
                 }
             });
 
-    private final ActivityResultLauncher<String> elegirImagen =
-            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
-                if (uri != null) {
-                    leerQrDeImagen(uri);
-                }
-            });
-
     public static Intent crearIntent(Context context, long publicacionId, String titulo) {
         return new Intent(context, ConfirmarRecepcionActivity.class)
                 .putExtra(EXTRA_PUBLICACION_ID, publicacionId)
@@ -129,7 +119,6 @@ public class ConfirmarRecepcionActivity extends AppCompatActivity {
 
         ((TextView) findViewById(R.id.tvArticuloQr))
                 .setText("Confirmá que recibiste «" + titulo + "»");
-        findViewById(R.id.btnElegirImagenQr).setOnClickListener(v -> elegirImagen.launch("image/*"));
         findViewById(R.id.btnCancelarQr).setOnClickListener(v -> finish());
 
         // Solo QR: más rápido y evita leer otros códigos de barras por error.
@@ -177,34 +166,6 @@ public class ConfirmarRecepcionActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
         camara.bindToLifecycle(this);
         previewView.setController(camara);
-    }
-
-    private void leerQrDeImagen(Uri uri) {
-        if (procesando) {
-            return;
-        }
-        InputImage imagen;
-        try {
-            imagen = InputImage.fromFilePath(this, uri);
-        } catch (IOException error) {
-            mostrarError("No se pudo abrir la imagen", "Probá con otra imagen del QR.");
-            return;
-        }
-        progreso.setVisibility(View.VISIBLE);
-        scanner.process(imagen)
-                .addOnSuccessListener(codigos -> {
-                    progreso.setVisibility(View.GONE);
-                    if (codigos.isEmpty() || codigos.get(0).getRawValue() == null) {
-                        mostrarError("No se encontró un QR",
-                                "La imagen elegida no contiene un código QR legible. Probá con otra imagen.");
-                    } else {
-                        alLeerCodigo(codigos.get(0).getRawValue());
-                    }
-                })
-                .addOnFailureListener(error -> {
-                    progreso.setVisibility(View.GONE);
-                    mostrarError("No se pudo leer la imagen", "Probá con otra imagen del QR.");
-                });
     }
 
     private void alLeerCodigo(String texto) {
