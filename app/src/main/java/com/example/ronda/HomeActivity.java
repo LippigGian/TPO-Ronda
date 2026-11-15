@@ -61,16 +61,26 @@ public class HomeActivity extends AppCompatActivity {
     private static final String EXTRA_PRECIO_MIN = "precioMin";
     private static final String EXTRA_PRECIO_MAX = "precioMax";
     private static final String EXTRA_ESTADO_ARTICULO = "estadoArticulo";
+    private static final String EXTRA_CERCANIA = "cercania";
+    private static final String EXTRA_RADIO_KM = "radioKm";
 
-    /** Abre el Home con los filtros de una búsqueda guardada (punto 10) ya aplicados. */
+    /**
+     * Abre el Home con los filtros de una búsqueda guardada (punto 10) ya aplicados.
+     * La cercanía se resuelve con la ubicación actual del usuario, igual que al filtrar desde el Home.
+     */
     public static Intent crearIntentConFiltros(Context context, String texto, String categoria,
-                                               Double precioMin, Double precioMax, String estadoArticulo) {
+                                               Double precioMin, Double precioMax, String estadoArticulo,
+                                               boolean cercania, Double radioKm) {
         Intent intent = new Intent(context, HomeActivity.class);
         intent.putExtra(EXTRA_TEXTO, texto);
         intent.putExtra(EXTRA_CATEGORIA, categoria);
         if (precioMin != null) intent.putExtra(EXTRA_PRECIO_MIN, precioMin);
         if (precioMax != null) intent.putExtra(EXTRA_PRECIO_MAX, precioMax);
         intent.putExtra(EXTRA_ESTADO_ARTICULO, estadoArticulo);
+        if (cercania) {
+            intent.putExtra(EXTRA_CERCANIA, true);
+            if (radioKm != null) intent.putExtra(EXTRA_RADIO_KM, radioKm);
+        }
         return intent;
     }
 
@@ -159,7 +169,12 @@ public class HomeActivity extends AppCompatActivity {
 
         cargarCategorias();
         cargarFavoritoIds();
-        cargarDesdeCero();
+        // Una búsqueda guardada con cercanía necesita resolver la ubicación (y quizás el permiso) antes de cargar.
+        if (filtros.cercania) {
+            aplicarFiltros();
+        } else {
+            cargarDesdeCero();
+        }
     }
 
     @Override
@@ -196,7 +211,7 @@ public class HomeActivity extends AppCompatActivity {
         Intent intent = getIntent();
         boolean traeFiltros = intent.hasExtra(EXTRA_TEXTO) || intent.hasExtra(EXTRA_CATEGORIA)
                 || intent.hasExtra(EXTRA_PRECIO_MIN) || intent.hasExtra(EXTRA_PRECIO_MAX)
-                || intent.hasExtra(EXTRA_ESTADO_ARTICULO);
+                || intent.hasExtra(EXTRA_ESTADO_ARTICULO) || intent.hasExtra(EXTRA_CERCANIA);
         if (!traeFiltros) {
             return;
         }
@@ -212,6 +227,10 @@ public class HomeActivity extends AppCompatActivity {
             filtros.precioMax = intent.getDoubleExtra(EXTRA_PRECIO_MAX, 0);
         }
         filtros.estadoArticulo = intent.getStringExtra(EXTRA_ESTADO_ARTICULO);
+        if (intent.getBooleanExtra(EXTRA_CERCANIA, false)) {
+            filtros.cercania = true;
+            filtros.radioKm = intent.getDoubleExtra(EXTRA_RADIO_KM, FiltrosHome.RADIO_KM_POR_DEFECTO);
+        }
         actualizarBotonFiltros();
     }
 
