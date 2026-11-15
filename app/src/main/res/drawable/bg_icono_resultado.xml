@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Círculo del ícono de resultado; el color se aplica con backgroundTint según el resultado. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@android:color/white" />
+</shape>

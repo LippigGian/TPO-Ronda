@@ -22,6 +22,7 @@ final class OfertaItemBinder {
         void rechazar(OfertaModels.Oferta oferta);
         void contraofertar(OfertaModels.Oferta oferta);
         void verPuntoEntrega(OfertaModels.Oferta oferta);
+        void confirmarRecepcion(OfertaModels.Oferta oferta);
         void abrirPublicacion(OfertaModels.Oferta oferta);
     }
 
@@ -50,6 +51,12 @@ final class OfertaItemBinder {
         View btnEntrega = fila.findViewById(R.id.btnVerPuntoEntrega);
         btnEntrega.setVisibility(oferta.estaAceptada() && oferta.soyComprador() ? View.VISIBLE : View.GONE);
         btnEntrega.setOnClickListener(v -> acciones.verPuntoEntrega(oferta));
+
+        // Cierre con QR: el comprador lo escanea al recibir el artículo, mientras la venta no esté confirmada.
+        View btnRecepcion = fila.findViewById(R.id.btnConfirmarRecepcion);
+        btnRecepcion.setVisibility(oferta.estaAceptada() && oferta.soyComprador() && !oferta.ventaConfirmada()
+                ? View.VISIBLE : View.GONE);
+        configurarBoton(btnRecepcion, online, v -> acciones.confirmarRecepcion(oferta));
 
         fila.setOnClickListener(v -> acciones.abrirPublicacion(oferta));
     }

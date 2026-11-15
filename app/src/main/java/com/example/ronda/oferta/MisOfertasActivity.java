@@ -211,6 +211,11 @@ public class MisOfertasActivity extends AppCompatActivity implements OfertaItemB
     }
 
     @Override
+    public void confirmarRecepcion(OfertaModels.Oferta oferta) {
+        OfertaAcciones.confirmarRecepcion(this, oferta);
+    }
+
+    @Override
     public void abrirPublicacion(OfertaModels.Oferta oferta) {
         if (!online) {
             Toast.makeText(this, "Necesitás conexión a internet para continuar", Toast.LENGTH_SHORT).show();

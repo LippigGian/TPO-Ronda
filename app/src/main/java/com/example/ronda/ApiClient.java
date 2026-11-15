@@ -351,14 +351,12 @@ public final class ApiClient {
         public String getNombreUsuario() { return nombreUsuario; }
     }
 
-    /** Venta de una publicación (crea la operación) **/
-    public static final class VenderRequest {
-        private final String compradorEmail;
-        private final double montoFinal;
+    /** Cierre de la operación con QR: texto leído del QR físico de entrega **/
+    public static final class ConfirmarRecepcionRequest {
+        private final String codigo;
 
-        public VenderRequest(String compradorEmail, double montoFinal) {
-            this.compradorEmail = compradorEmail;
-            this.montoFinal = montoFinal;
+        public ConfirmarRecepcionRequest(String codigo) {
+            this.codigo = codigo;
         }
     }
 

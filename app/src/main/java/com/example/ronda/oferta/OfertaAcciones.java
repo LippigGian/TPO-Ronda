@@ -9,13 +9,14 @@ import com.example.ronda.ApiClient;
 import com.example.ronda.ConnectivityObserver;
 import com.example.ronda.Formato;
 import com.example.ronda.PuntoEntregaActivity;
+import com.example.ronda.recepcion.ConfirmarRecepcionActivity;
 import com.example.ronda.util.ApiCallback;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 /**
  * Todas las acciones sobre ofertas en un solo lugar: ofertar, aceptar, rechazar,
- * contraofertar y ver el punto de entrega. Las usan el detalle de la publicación
+ * contraofertar, ver el punto de entrega y confirmar la recepción con QR. Las usan el detalle de la publicación
  * y "Mis ofertas", así cada regla (confirmaciones, conexión, mensajes) se escribe una sola vez.
  */
 public final class OfertaAcciones {
@@ -87,6 +88,15 @@ public final class OfertaAcciones {
                 .putExtra(PuntoEntregaActivity.EXTRA_LATITUD, entrega.getLatitud())
                 .putExtra(PuntoEntregaActivity.EXTRA_LONGITUD, entrega.getLongitud());
         context.startActivity(intent);
+    }
+
+    /** Cierre con QR: abre la cámara para que el comprador escanee el QR físico de entrega. */
+    public static void confirmarRecepcion(Context context, OfertaModels.Oferta oferta) {
+        if (!hayConexion(context)) {
+            return;
+        }
+        context.startActivity(ConfirmarRecepcionActivity.crearIntent(context,
+                oferta.getPublicacion().getId(), oferta.getPublicacion().getTitulo()));
     }
 
     // ---------- helpers ----------

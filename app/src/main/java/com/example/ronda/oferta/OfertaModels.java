@@ -95,6 +95,10 @@ public final class OfertaModels {
         public boolean soyComprador() { return COMPRADOR.equals(miRol); }
         public boolean estaPendiente() { return PENDIENTE.equals(estado); }
         public boolean estaAceptada() { return ACEPTADA.equals(estado); }
+        /** true cuando el comprador ya escaneó el QR de entrega y la publicación quedó vendida. */
+        public boolean ventaConfirmada() {
+            return publicacion != null && "VENDIDA".equals(publicacion.getEstadoPublicacion());
+        }
     }
 
     public static final class MisOfertas {
