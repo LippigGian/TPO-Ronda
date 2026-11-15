@@ -29,10 +29,14 @@ final class OfertaTestClient {
         return primerGrupo("\"token\":\"([^\"]+)\"", response.body());
     }
 
-    /** Publicacion nueva por test: asi cada test es independiente de los demas. */
+    /**
+     * Publicacion nueva por test: asi cada test es independiente de los demas.
+     * Usa una categoria propia para no contaminar los filtros de ExplorarPublicacionesIT,
+     * que comparte la misma base y se basa en las publicaciones de V11.
+     */
     long crearPublicacion(String token, int precio) throws Exception {
         var response = post("/api/v1/publicaciones", token, """
-                {"titulo":"Artículo para ofertas","descripcion":"Prueba de negociación","categoria":"Hogar",
+                {"titulo":"Artículo para ofertas","descripcion":"Prueba de negociación","categoria":"Pruebas ofertas",
                  "precio":%d,"estadoArticulo":"USADO","direccion":"Gorriti 4500, Palermo",
                  "latitud":-34.5900,"longitud":-58.4300}
                 """.formatted(precio));
