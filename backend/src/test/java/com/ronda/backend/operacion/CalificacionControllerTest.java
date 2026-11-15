@@ -62,7 +62,18 @@ class CalificacionControllerTest {
                         .with(user("autor@test.com"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"puntaje\":6}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Elegí entre 1 y 5 estrellas"));
+    }
+
+    @Test
+    void crearRejectsLongCommentWithReadableMessage() throws Exception {
+        mvc.perform(post("/api/v1/operaciones/1/calificaciones")
+                        .with(user("autor@test.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"puntaje\":4,\"comentario\":\"" + "x".repeat(501) + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("El comentario puede tener hasta 500 caracteres"));
     }
 
     @Test
@@ -74,6 +85,7 @@ class CalificacionControllerTest {
                         .with(user("autor@test.com"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"puntaje\":4}"))
-                .andExpect(status().isConflict());
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("Ya calificaste esta operación"));
     }
 }

@@ -10,8 +10,10 @@ public final class CalificacionDtos {
     private CalificacionDtos() { }
 
     public record CreateRequest(
-            @NotNull @Min(1) @Max(5) Integer puntaje,
-            @Size(max = 500) String comentario) { }
+            @NotNull(message = "Elegí entre 1 y 5 estrellas")
+            @Min(value = 1, message = "Elegí entre 1 y 5 estrellas")
+            @Max(value = 5, message = "Elegí entre 1 y 5 estrellas") Integer puntaje,
+            @Size(max = 500, message = "El comentario puede tener hasta 500 caracteres") String comentario) { }
 
     public record Response(
             Long id,
