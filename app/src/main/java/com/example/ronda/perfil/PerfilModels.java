@@ -72,6 +72,7 @@ public final class PerfilModels {
         private String miembroDesde;
         private Reputacion reputacion;
         private List<PublicacionResumen> publicacionesActivas;
+        private List<CalificacionRecibida> calificaciones;
 
         public long getId() { return id; }
         public String getNombre() { return nombre; }
@@ -80,6 +81,25 @@ public final class PerfilModels {
         public String getMiembroDesde() { return miembroDesde; }
         public Reputacion getReputacion() { return reputacion; }
         public List<PublicacionResumen> getPublicacionesActivas() { return publicacionesActivas; }
+        /** Últimas calificaciones recibidas, de la más nueva a la más vieja (punto 9). */
+        public List<CalificacionRecibida> getCalificaciones() { return calificaciones; }
+    }
+
+    /** Una calificación que recibió el usuario. rolAutor: COMPRADOR o VENDEDOR (lo que fue quien calificó). */
+    public static final class CalificacionRecibida {
+        private int puntaje;
+        private String comentario;
+        private String autorNombre;
+        private String rolAutor;
+        private String publicacionTitulo;
+        private String fecha;
+
+        public int getPuntaje() { return puntaje; }
+        public String getComentario() { return comentario; }
+        public String getAutorNombre() { return autorNombre; }
+        public String getRolAutor() { return rolAutor; }
+        public String getPublicacionTitulo() { return publicacionTitulo; }
+        public String getFecha() { return fecha; }
     }
 
     public static final class PublicacionResumen {

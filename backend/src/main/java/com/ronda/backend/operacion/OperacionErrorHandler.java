@@ -9,11 +9,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Devuelve los errores de operaciones con un mensaje legible en "detail", igual que OfertaErrorHandler.
- * El cierre con QR necesita mostrar el motivo exacto ("Código inválido: ..."), y application.yml
- * oculta los mensajes por defecto (include-message: never). ApiClient.errorMessage ya lee "detail".
+ * Devuelve los errores de operaciones y calificaciones con un mensaje legible en "detail",
+ * igual que OfertaErrorHandler. El cierre con QR y la calificación necesitan mostrar el motivo exacto
+ * ("Código inválido: ...", "Ya calificaste esta operación"), y application.yml oculta los mensajes
+ * por defecto (include-message: never). ApiClient.errorMessage ya lee "detail".
  */
-@RestControllerAdvice(assignableTypes = OperacionController.class)
+@RestControllerAdvice(assignableTypes = {OperacionController.class, CalificacionController.class})
 public class OperacionErrorHandler {
 
     @ExceptionHandler(ResponseStatusException.class)

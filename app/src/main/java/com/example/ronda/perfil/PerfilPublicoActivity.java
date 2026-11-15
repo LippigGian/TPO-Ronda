@@ -27,6 +27,7 @@ import java.util.List;
 
 /**
  * Punto 2: perfil publico de cualquier usuario (reputacion, antiguedad y publicaciones activas).
+ * Punto 9: incluye las calificaciones recibidas (estrellas, comentario, autor y fecha).
  *
  * Para abrirlo desde otra pantalla (por ejemplo, el detalle de una publicacion):
  *   PerfilPublicoActivity.abrir(context, vendedorId);
@@ -43,6 +44,8 @@ public class PerfilPublicoActivity extends AppCompatActivity {
     private TextView tvSinPublicaciones;
     private ImageView ivFoto;
     private LinearLayout contenedorPublicaciones;
+    private TextView tvSinCalificaciones;
+    private LinearLayout contenedorCalificaciones;
 
     /** Punto de entrada unico: asi nadie tiene que conocer el nombre del extra. */
     public static void abrir(Context context, long usuarioId) {
@@ -78,6 +81,8 @@ public class PerfilPublicoActivity extends AppCompatActivity {
         tvOperaciones = findViewById(R.id.tvOperacionesPublico);
         tvSinPublicaciones = findViewById(R.id.tvSinPublicacionesActivas);
         contenedorPublicaciones = findViewById(R.id.contenedorPublicacionesActivas);
+        tvSinCalificaciones = findViewById(R.id.tvSinCalificaciones);
+        contenedorCalificaciones = findViewById(R.id.contenedorCalificaciones);
     }
 
     private void cargarPerfil(long usuarioId) {
@@ -98,7 +103,38 @@ public class PerfilPublicoActivity extends AppCompatActivity {
         tvEstrellas.setText(PerfilFormatter.estrellas(perfil.getReputacion()));
         tvOperaciones.setText(PerfilFormatter.operaciones(perfil.getReputacion()));
         cargarImagen(perfil.getFoto(), ivFoto, R.drawable.ic_perfil_placeholder);
+        mostrarCalificaciones(perfil.getCalificaciones());
         mostrarPublicaciones(perfil.getPublicacionesActivas());
+    }
+
+    /** Punto 9: las calificaciones recibidas quedan visibles en el perfil público. */
+    private void mostrarCalificaciones(List<PerfilModels.CalificacionRecibida> calificaciones) {
+        contenedorCalificaciones.removeAllViews();
+
+        boolean vacia = calificaciones == null || calificaciones.isEmpty();
+        tvSinCalificaciones.setVisibility(vacia ? View.VISIBLE : View.GONE);
+        if (vacia) {
+            return;
+        }
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        for (PerfilModels.CalificacionRecibida calificacion : calificaciones) {
+            View fila = inflater.inflate(R.layout.item_calificacion_recibida, contenedorCalificaciones, false);
+
+            ((TextView) fila.findViewById(R.id.tvEstrellasCalificacion))
+                    .setText(PerfilFormatter.estrellasDePuntaje(calificacion.getPuntaje()));
+            ((TextView) fila.findViewById(R.id.tvAutorCalificacion))
+                    .setText(PerfilFormatter.autorCalificacion(calificacion));
+
+            TextView tvComentario = fila.findViewById(R.id.tvComentarioCalificacion);
+            boolean hayComentario = calificacion.getComentario() != null && !calificacion.getComentario().isEmpty();
+            tvComentario.setVisibility(hayComentario ? View.VISIBLE : View.GONE);
+            if (hayComentario) {
+                tvComentario.setText("“" + calificacion.getComentario() + "”");
+            }
+
+            contenedorCalificaciones.addView(fila);
+        }
     }
 
     private void mostrarPublicaciones(List<PerfilModels.PublicacionResumen> publicaciones) {

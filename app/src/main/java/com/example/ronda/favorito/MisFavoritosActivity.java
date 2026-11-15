@@ -268,7 +268,8 @@ public class MisFavoritosActivity extends AppCompatActivity
     public void verResultados(FavoritoModels.BusquedaGuardadaItem busqueda) {
         FavoritoAcciones.marcarBusquedaVista(busqueda.getId());
         startActivity(HomeActivity.crearIntentConFiltros(this, busqueda.getQ(), busqueda.getCategoria(),
-                busqueda.getPrecioMin(), busqueda.getPrecioMax(), busqueda.getEstadoArticulo()));
+                busqueda.getPrecioMin(), busqueda.getPrecioMax(), busqueda.getEstadoArticulo(),
+                busqueda.isCercania(), busqueda.getRadioKm()));
     }
 
     /**

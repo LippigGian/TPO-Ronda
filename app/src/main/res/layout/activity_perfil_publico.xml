@@ -101,6 +101,32 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="12dp"
+            android:text="Calificaciones recibidas"
+            android:textColor="@color/ronda_text_primary"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvSinCalificaciones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Todavía no recibió calificaciones."
+            android:textColor="@color/ronda_text_secondary"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+        <!-- Se llena desde el codigo con item_calificacion_recibida.xml -->
+        <LinearLayout
+            android:id="@+id/contenedorCalificaciones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="12dp"
             android:text="Publicaciones activas"
             android:textColor="@color/ronda_text_primary"
             android:textSize="19sp"

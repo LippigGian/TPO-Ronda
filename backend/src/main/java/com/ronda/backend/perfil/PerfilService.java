@@ -3,6 +3,8 @@ package com.ronda.backend.perfil;
 import com.ronda.backend.auth.JwtService;
 import com.ronda.backend.auth.Usuario;
 import com.ronda.backend.auth.UsuarioRepository;
+import com.ronda.backend.operacion.Calificacion;
+import com.ronda.backend.operacion.CalificacionRepository;
 import com.ronda.backend.publicacion.EstadoPublicacion;
 import com.ronda.backend.publicacion.FotoStorageService;
 import java.util.List;
@@ -23,16 +25,18 @@ public class PerfilService {
     private final ReputacionPerfilService reputacionService;
     private final FotoStorageService fotos;
     private final JwtService jwtService;
+    private final CalificacionRepository calificaciones;
 
     public PerfilService(UsuarioRepository usuarios, PerfilRepository perfiles,
                          PerfilPublicacionRepository publicaciones, ReputacionPerfilService reputacionService,
-                         FotoStorageService fotos, JwtService jwtService) {
+                         FotoStorageService fotos, JwtService jwtService, CalificacionRepository calificaciones) {
         this.usuarios = usuarios;
         this.perfiles = perfiles;
         this.publicaciones = publicaciones;
         this.reputacionService = reputacionService;
         this.fotos = fotos;
         this.jwtService = jwtService;
+        this.calificaciones = calificaciones;
     }
 
     @Transactional(readOnly = true)
@@ -97,8 +101,15 @@ public class PerfilService {
                 .map(PerfilDtos.PublicacionResumen::from)
                 .toList();
 
+        List<PerfilDtos.CalificacionRecibida> recibidas = calificaciones
+                .findTop20ByReceptorIdOrderByCreatedAtDesc(usuarioId)
+                .stream()
+                .map(this::aCalificacionRecibida)
+                .toList();
+
         return new PerfilDtos.PerfilPublicoResponse(usuario.getId(), nombrePublico(usuario, perfil), perfil.getZona(),
-                perfil.getFotoUrl(), usuario.getCreatedAt(), reputacionService.calcular(usuarioId), activas);
+                perfil.getFotoUrl(), usuario.getCreatedAt(), reputacionService.calcular(usuarioId), activas,
+                recibidas);
     }
 
     /**
@@ -125,6 +136,15 @@ public class PerfilService {
             return nombreCuenta;
         }
         return NOMBRE_POR_DEFECTO;
+    }
+
+    /** El autor se muestra con su nombre publico, igual que en el resto de la app (nunca con su email). */
+    private PerfilDtos.CalificacionRecibida aCalificacionRecibida(Calificacion calificacion) {
+        Usuario autor = calificacion.getAutor();
+        boolean autorEsVendedor = calificacion.getOperacion().getVendedor().getId().equals(autor.getId());
+        return new PerfilDtos.CalificacionRecibida(calificacion.getPuntaje(), calificacion.getComentario(),
+                nombrePublico(autor), autorEsVendedor ? "VENDEDOR" : "COMPRADOR",
+                calificacion.getOperacion().getPublicacion().getTitulo(), calificacion.getCreatedAt());
     }
 
     private PerfilDtos.MiPerfilResponse armarMiPerfil(Usuario usuario, Perfil perfil) {
