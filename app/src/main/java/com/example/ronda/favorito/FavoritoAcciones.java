@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.widget.Toast;
 
 import com.example.ronda.ApiClient;
+import com.example.ronda.ConnectivityObserver;
 import com.example.ronda.util.ApiCallback;
 
 import retrofit2.Call;
@@ -26,11 +27,26 @@ public final class FavoritoAcciones {
 
     private FavoritoAcciones() { }
 
+    /** Punto 6: guardar o quitar favoritos requiere conexión; sin ella se avisa en vez de fallar. */
+    private static boolean hayConexion(Activity activity) {
+        if (ConnectivityObserver.isOnline(activity)) {
+            return true;
+        }
+        Toast.makeText(activity, "Necesitás conexión a internet para guardar favoritos", Toast.LENGTH_LONG).show();
+        return false;
+    }
+
     public static void marcar(Activity activity, long publicacionId, AlTerminar alTerminar) {
+        if (!hayConexion(activity)) {
+            return;
+        }
         api().marcar(publicacionId).enqueue(callback(activity, "No se pudo agregar a favoritos", alTerminar));
     }
 
     public static void desmarcar(Activity activity, long publicacionId, AlTerminar alTerminar) {
+        if (!hayConexion(activity)) {
+            return;
+        }
         api().desmarcar(publicacionId).enqueue(callback(activity, "No se pudo quitar de favoritos", alTerminar));
     }
 
