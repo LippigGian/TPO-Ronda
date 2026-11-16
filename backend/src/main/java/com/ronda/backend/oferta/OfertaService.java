@@ -2,6 +2,7 @@ package com.ronda.backend.oferta;
 
 import com.ronda.backend.auth.Usuario;
 import com.ronda.backend.auth.UsuarioRepository;
+import com.ronda.backend.notificacion.NotificacionService;
 import com.ronda.backend.perfil.PerfilService;
 import com.ronda.backend.publicacion.EstadoPublicacion;
 import com.ronda.backend.publicacion.Publicacion;
@@ -27,15 +28,17 @@ public class OfertaService {
     private final PublicacionRepository publicaciones;
     private final UsuarioRepository usuarios;
     private final PerfilService perfiles;
+    private final NotificacionService notificaciones;
     private final Duration vigencia;
 
     public OfertaService(OfertaRepository ofertas, PublicacionRepository publicaciones, UsuarioRepository usuarios,
-                         PerfilService perfiles,
+                         PerfilService perfiles, NotificacionService notificaciones,
                          @Value("${app.ofertas.vigencia-minutos:2880}") long vigenciaMinutos) {
         this.ofertas = ofertas;
         this.publicaciones = publicaciones;
         this.usuarios = usuarios;
         this.perfiles = perfiles;
+        this.notificaciones = notificaciones;
         this.vigencia = Duration.ofMinutes(vigenciaMinutos);
     }
 
@@ -68,6 +71,9 @@ public class OfertaService {
 
         Oferta oferta = ofertas.save(new Oferta(publicacion, comprador, request.precio(),
                 limpiar(request.mensaje()), ahora().plus(vigencia)));
+        // Punto 11: aviso al vendedor.
+        notificaciones.ofertaRecibida(publicacion.getVendedor(), perfiles.nombrePublico(comprador),
+                publicacion.getTitulo(), oferta.getPrecio(), publicacion.getId(), oferta.getId());
         return aResponse(oferta, comprador.getId());
     }
 
@@ -109,9 +115,16 @@ public class OfertaService {
 
         Instant ahora = ahora();
         oferta.aceptar(ahora);
+        Publicacion publicacion = oferta.getPublicacion();
+        // Punto 11: avisos a quienes tenian otra negociacion abierta, que se cierra a continuacion.
+        ofertas.findByPublicacionIdAndEstadoAndIdNot(publicacion.getId(), EstadoOferta.PENDIENTE, oferta.getId())
+                .forEach(otra -> notificaciones.ofertaRechazadaPorOtraAceptada(otra.getComprador(),
+                        publicacion.getTitulo(), publicacion.getId(), otra.getId()));
         // Solo puede haber un comprador: el resto de las negociaciones abiertas se cierran.
-        ofertas.rechazarOtrasPendientes(oferta.getPublicacion().getId(), oferta.getId(), ahora,
+        ofertas.rechazarOtrasPendientes(publicacion.getId(), oferta.getId(), ahora,
                 EstadoOferta.PENDIENTE, EstadoOferta.RECHAZADA);
+        notificaciones.ofertaAceptada(otraParte(oferta, usuario), perfiles.nombrePublico(usuario),
+                publicacion.getTitulo(), oferta.getPrecio(), publicacion.getId(), oferta.getId());
         return aResponse(oferta, usuario.getId());
     }
 
@@ -123,6 +136,8 @@ public class OfertaService {
         validarQuePuedeResponder(oferta, usuario);
 
         oferta.rechazar(ahora());
+        notificaciones.ofertaRechazada(otraParte(oferta, usuario), perfiles.nombrePublico(usuario),
+                oferta.getPublicacion().getTitulo(), oferta.getPublicacion().getId(), oferta.getId());
         return aResponse(oferta, usuario.getId());
     }
 
@@ -139,6 +154,9 @@ public class OfertaService {
 
         Instant ahora = ahora();
         oferta.contraofertar(request.precio(), limpiar(request.mensaje()), ahora.plus(vigencia), ahora);
+        notificaciones.contraofertaRecibida(otraParte(oferta, usuario), perfiles.nombrePublico(usuario),
+                oferta.getPublicacion().getTitulo(), oferta.getPrecio(), oferta.getPublicacion().getId(),
+                oferta.getId());
         return aResponse(oferta, usuario.getId());
     }
 
@@ -164,6 +182,11 @@ public class OfertaService {
         Usuario otraParte = miRol == ParteOferta.COMPRADOR ? oferta.getVendedor() : oferta.getComprador();
         var contraparte = new OfertaDtos.Contraparte(otraParte.getId(), perfiles.nombrePublico(otraParte));
         return OfertaDtos.Response.from(oferta, miRol, contraparte);
+    }
+
+    /** La otra persona de la negociacion: a quien le llega el aviso de lo que hizo `usuario`. */
+    private static Usuario otraParte(Oferta oferta, Usuario usuario) {
+        return oferta.parteDe(usuario.getId()) == ParteOferta.COMPRADOR ? oferta.getVendedor() : oferta.getComprador();
     }
 
     /** Devuelve 404 tanto si no existe como si el usuario no participa: no revela ofertas ajenas. */

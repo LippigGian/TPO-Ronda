@@ -29,6 +29,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ronda.favorito.FavoritoAcciones;
 import com.example.ronda.favorito.FavoritoApi;
 import com.example.ronda.favorito.FavoritoModels;
+import com.example.ronda.notificacion.AvisosNotifier;
+import com.example.ronda.notificacion.AvisosPoller;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.chip.ChipGroup;
@@ -135,6 +137,9 @@ public class HomeActivity extends AppCompatActivity {
         tvAvisoOffline = findViewById(R.id.tvAvisoOffline);
         cache = PublicacionesCacheManager.getInstance(this);
         connectivityObserver = new ConnectivityObserver(this);
+        // Punto 11: permiso de notificaciones (Android 13+) y primera consulta de avisos con la sesión ya iniciada.
+        AvisosNotifier.pedirPermisoSiHaceFalta(this);
+        AvisosPoller.consultarAhora();
 
         adapter = new PublicacionesAdapter(this::abrirDetalle, this::alternarFavorito);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);

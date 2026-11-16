@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +24,7 @@ import com.example.ronda.ConnectivityObserver;
 import com.example.ronda.DetallePublicacionActivity;
 import com.example.ronda.R;
 import com.example.ronda.util.ApiCallback;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.List;
@@ -37,6 +39,8 @@ public class MisOfertasActivity extends AppCompatActivity implements OfertaItemB
     private static final long INTERVALO_ACTUALIZACION_MS = 15_000L;
     private static final int TAB_ENVIADAS = 0;
     private static final int TAB_RECIBIDAS = 1;
+    /** Punto 11: oferta a mostrar al abrir la pantalla desde una notificación. */
+    private static final String EXTRA_OFERTA_ID = "oferta_id";
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable actualizacionPeriodica = new Runnable() {
@@ -58,9 +62,18 @@ public class MisOfertasActivity extends AppCompatActivity implements OfertaItemB
     private boolean cargando;
     private boolean online = true;
     private boolean errorYaMostrado;
+    /** Oferta que llegó por una notificación: se abre su pestaña y se resalta. -1 si no hay. */
+    private long ofertaDestacada = -1;
+    /** Se hace scroll hasta la oferta destacada una sola vez; las recargas periódicas no lo repiten. */
+    private boolean scrollPendiente;
 
     public static Intent crearIntent(Context context) {
         return new Intent(context, MisOfertasActivity.class);
+    }
+
+    /** Punto 11: al tocar un aviso de oferta se abre "Mis ofertas" directamente en esa oferta. */
+    public static Intent crearIntent(Context context, long ofertaId) {
+        return crearIntent(context).putExtra(EXTRA_OFERTA_ID, ofertaId);
     }
 
     @Override
@@ -76,6 +89,8 @@ public class MisOfertasActivity extends AppCompatActivity implements OfertaItemB
         tvVacio = findViewById(R.id.tvSinOfertas);
         tvAvisoOffline = findViewById(R.id.tvAvisoOfflineOfertas);
         progreso = findViewById(R.id.progresoOfertas);
+        ofertaDestacada = getIntent().getLongExtra(EXTRA_OFERTA_ID, -1);
+        scrollPendiente = ofertaDestacada != -1;
 
         tabs.addTab(tabs.newTab().setText("Enviadas"));
         tabs.addTab(tabs.newTab().setText("Recibidas"));
@@ -84,6 +99,16 @@ public class MisOfertasActivity extends AppCompatActivity implements OfertaItemB
             @Override public void onTabUnselected(TabLayout.Tab tab) { }
             @Override public void onTabReselected(TabLayout.Tab tab) { }
         });
+    }
+
+    /** Con la pantalla ya abierta, otra notificación de oferta llega por acá (SINGLE_TOP). */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        ofertaDestacada = intent.getLongExtra(EXTRA_OFERTA_ID, -1);
+        scrollPendiente = ofertaDestacada != -1;
+        recargarAhora();
     }
 
     @Override
@@ -117,6 +142,7 @@ public class MisOfertasActivity extends AppCompatActivity implements OfertaItemB
             protected void onExito(OfertaModels.MisOfertas respuesta) {
                 datos = respuesta;
                 errorYaMostrado = false;
+                seleccionarPestaniaDeOfertaDestacada();
                 actualizarPestanias();
                 mostrarListaActual();
             }
@@ -184,7 +210,67 @@ public class MisOfertasActivity extends AppCompatActivity implements OfertaItemB
         for (OfertaModels.Oferta oferta : ofertas) {
             View fila = inflater.inflate(R.layout.item_oferta, contenedor, false);
             OfertaItemBinder.completar(this, fila, oferta, online, this);
+            if (oferta.getId() == ofertaDestacada) {
+                resaltar(fila);
+            }
             contenedor.addView(fila);
+        }
+        if (scrollPendiente && ofertaDestacada != -1) {
+            // Se espera a que las tarjetas estén medidas para conocer la posición de la destacada.
+            contenedor.postDelayed(this::scrollHastaDestacada, 250);
+        }
+    }
+
+    // ---------- Oferta abierta desde una notificación (punto 11) ----------
+
+    /** Selecciona la pestaña donde está la oferta del aviso: enviadas si soy comprador, recibidas si vendo. */
+    private void seleccionarPestaniaDeOfertaDestacada() {
+        if (ofertaDestacada == -1) {
+            return;
+        }
+        int pestania = contiene(datos.getRecibidas(), ofertaDestacada) ? TAB_RECIBIDAS
+                : contiene(datos.getEnviadas(), ofertaDestacada) ? TAB_ENVIADAS : -1;
+        if (pestania == -1) {
+            ofertaDestacada = -1;
+            Toast.makeText(this, "La oferta ya no está disponible", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        TabLayout.Tab tab = tabs.getTabAt(pestania);
+        if (tab != null && tabs.getSelectedTabPosition() != pestania) {
+            tab.select(); // dispara mostrarListaActual()
+        }
+    }
+
+    private static boolean contiene(List<OfertaModels.Oferta> ofertas, long ofertaId) {
+        for (OfertaModels.Oferta oferta : ofertas) {
+            if (oferta.getId() == ofertaId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Borde de color en la tarjeta de la oferta del aviso. */
+    private void resaltar(View fila) {
+        fila.setTag(ofertaDestacada);
+        if (fila instanceof MaterialCardView) {
+            MaterialCardView tarjeta = (MaterialCardView) fila;
+            tarjeta.setStrokeColor(getColor(R.color.ronda_primary));
+            tarjeta.setStrokeWidth(Math.round(3 * getResources().getDisplayMetrics().density));
+        }
+    }
+
+    private void scrollHastaDestacada() {
+        if (!scrollPendiente || !(contenedor.getParent() instanceof ScrollView)) {
+            return;
+        }
+        for (int i = 0; i < contenedor.getChildCount(); i++) {
+            View fila = contenedor.getChildAt(i);
+            if (Long.valueOf(ofertaDestacada).equals(fila.getTag())) {
+                scrollPendiente = false;
+                ((ScrollView) contenedor.getParent()).smoothScrollTo(0, fila.getTop());
+                return;
+            }
         }
     }
 

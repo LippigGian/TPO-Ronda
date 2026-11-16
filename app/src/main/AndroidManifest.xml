@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Punto 11: avisos de preguntas y ofertas (Android 13+ lo pide en tiempo de ejecución). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- No obligatoria para instalar la app: sin camara solo queda deshabilitado el cierre con QR. -->
     <uses-feature
