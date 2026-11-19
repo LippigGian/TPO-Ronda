@@ -128,6 +128,33 @@ Los errores devuelven el motivo en `detail`:
 El vendedor ya no puede marcar una publicación como `VENDIDA` a mano: `PATCH /estado` con `VENDIDA`
 devuelve 400, y una publicación vendida no puede volver a `ACTIVA` ni a `PAUSADA`.
 
+## Avisos y notificaciones
+
+Cada evento de una negociación (punto 7) genera un aviso para la otra parte, en la misma transacción
+de la acción (tabla `ronda.notificaciones`, migración `V18`). No usa Firebase: la app consulta los avisos
+nuevos cada pocos segundos mientras está abierta o en segundo plano, y los muestra como notificación del sistema.
+
+| Evento | Recibe el aviso | Tipo |
+| --- | --- | --- |
+| Oferta nueva | Vendedor | `OFERTA_RECIBIDA` |
+| Contraoferta | La otra parte | `CONTRAOFERTA_RECIBIDA` |
+| Oferta aceptada | La otra parte | `OFERTA_ACEPTADA` |
+| Oferta rechazada (o cerrada porque se aceptó otra) | La otra parte / los demás compradores | `OFERTA_RECHAZADA` |
+| Pregunta nueva / pregunta respondida | Vendedor / quien preguntó | `PREGUNTA_RECIBIDA` / `PREGUNTA_RESPONDIDA` |
+
+Los avisos de preguntas ya están en `NotificacionService` (`preguntaRecibida` y `preguntaRespondida`):
+cuando se implementen las preguntas del detalle (punto 4), alcanza con llamarlos al guardar la pregunta y la respuesta.
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| `GET` | `/api/v1/notificaciones/nuevas` | Avisos todavía no mostrados. Quedan marcados como entregados, así no se repiten. |
+| `GET` | `/api/v1/notificaciones` | Bandeja: últimos 50 avisos y `noLeidas`. |
+| `POST` | `/api/v1/notificaciones/{id}/leida` | Marca un aviso propio como leído (404 si es ajeno). |
+| `POST` | `/api/v1/notificaciones/leidas` | Marca todos como leídos. |
+
+Cada aviso trae `ofertaId` y/o `publicacionId`: al tocar la notificación, la app abre "Mis ofertas" en esa
+oferta o, si no hay oferta, el detalle de la publicación.
+
 ## Opcion A: ejecutar todo con Docker Desktop
 
 Instalar Docker Desktop y usar contenedores Linux. Desde la raiz del repositorio:

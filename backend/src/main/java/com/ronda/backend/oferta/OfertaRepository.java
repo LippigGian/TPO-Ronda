@@ -29,6 +29,9 @@ public interface OfertaRepository extends JpaRepository<Oferta, Long> {
     long countByCompradorIdAndEstadoAndPublicacionEstadoPublicacion(Long compradorId, EstadoOferta estado,
                                                                     EstadoPublicacion estadoPublicacion);
 
+    /** Negociaciones abiertas de otros compradores: reciben aviso cuando se acepta una oferta (punto 11). */
+    List<Oferta> findByPublicacionIdAndEstadoAndIdNot(Long publicacionId, EstadoOferta estado, Long id);
+
     /** Pasa a VENCIDA toda oferta pendiente cuyo plazo ya se cumplio. Devuelve cuantas cambiaron. */
     @Modifying(flushAutomatically = true)
     @Query("""
