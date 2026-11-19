@@ -97,10 +97,17 @@ public class DetallePublicacionActivity extends AppCompatActivity {
         if (connectivityObserver == null) {
             return;
         }
-        connectivityObserver.start(online -> {
-            // Al recuperar la conexión se reemplaza la copia guardada por los datos del servidor.
-            if (online && mostrandoCache) {
-                runOnUiThread(this::cargar);
+        connectivityObserver.start(hayConexion -> {
+            if (hayConexion) {
+                // Al recuperar la conexión se reemplaza la copia guardada por los datos del servidor.
+                if (mostrandoCache) {
+                    cargar();
+                }
+            } else if (publicacion != null) {
+                // Se cortó con el detalle abierto: lo que se ve pasa a ser la copia y las acciones se bloquean.
+                mostrandoCache = true;
+                tvAvisoOffline.setVisibility(View.VISIBLE);
+                aplicarConexion(false);
             }
         });
     }
@@ -178,6 +185,19 @@ public class DetallePublicacionActivity extends AppCompatActivity {
         mostrarVendedor(p.getVendedor());
         mostrarDireccion(p);
         mostrarAcciones(p, online);
+        aplicarConexion(online);
+    }
+
+    /**
+     * Punto 6: sin conexión se deshabilitan las acciones que la necesitan (preguntar, ofertar,
+     * guardar y ver el perfil del vendedor) con un mensaje claro. "Cómo llegar" sigue disponible.
+     */
+    private void aplicarConexion(boolean online) {
+        btnOfertar.setEnabled(online);
+        btnPreguntar.setEnabled(online);
+        btnGuardar.setEnabled(online);
+        tvRequiereConexion.setVisibility(online ? View.GONE : View.VISIBLE);
+        findViewById(R.id.btnVerPerfil).setEnabled(online);
     }
 
     private void mostrarGaleria(List<String> fotos) {
@@ -257,11 +277,7 @@ public class DetallePublicacionActivity extends AppCompatActivity {
 
         btnGestionar.setVisibility(View.GONE);
         accionesInteresado.setVisibility(View.VISIBLE);
-        // Sin conexión estas acciones quedan deshabilitadas con un mensaje claro.
-        btnOfertar.setEnabled(online);
-        btnPreguntar.setEnabled(online);
-        btnGuardar.setEnabled(online);
-        tvRequiereConexion.setVisibility(online ? View.GONE : View.VISIBLE);
+        // Sin conexión estas acciones quedan deshabilitadas con un mensaje claro (ver aplicarConexion).
 
         // Cada acción se conecta con su módulo: ofertas (punto 7) y favoritos (punto 10).
         btnOfertar.setOnClickListener(v -> OfertaAcciones.ofertar(this, p.getId(), p.getPrecio()));

@@ -4,20 +4,31 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
-import android.net.NetworkRequest;
+import android.os.Handler;
+import android.os.Looper;
 
+/**
+ * Punto 6: estado de la conexión a internet.
+ *
+ * Escucha la red por defecto del dispositivo y avisa solo cuando el estado cambia de verdad
+ * (con internet validado o sin internet), siempre en el hilo principal. Así una pantalla puede
+ * deshabilitar sus acciones al perder la conexión y refrescar sus datos al recuperarla.
+ */
 public final class ConnectivityObserver {
 
     public interface Listener {
         void onStatusChanged(boolean online);
     }
 
+    private final Context context;
     private final ConnectivityManager connectivityManager;
+    private final Handler hiloPrincipal = new Handler(Looper.getMainLooper());
     private ConnectivityManager.NetworkCallback callback;
+    private boolean ultimoEstado;
 
     public ConnectivityObserver(Context context) {
-        connectivityManager = (ConnectivityManager) context.getApplicationContext()
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        this.context = context.getApplicationContext();
+        connectivityManager = (ConnectivityManager) this.context.getSystemService(Context.CONNECTIVITY_SERVICE);
     }
 
     /** Chequeo puntual, sincrónico: ¿hay internet ahora mismo? **/
@@ -34,32 +45,53 @@ public final class ConnectivityObserver {
                 && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
     }
 
-    /** Empieza a escuchar cambios de conectividad (llamar en onStart/onResume). **/
+    /** Empieza a escuchar cambios de conectividad (llamar en onStart). **/
     public void start(Listener listener) {
-        NetworkRequest request = new NetworkRequest.Builder()
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .build();
-
+        stop();
+        ultimoEstado = isOnline(context);
         callback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(Network network) {
-                listener.onStatusChanged(true);
+                revisar(listener);
+            }
+
+            // La red puede aparecer antes de tener internet validado: el cambio real llega acá.
+            @Override
+            public void onCapabilitiesChanged(Network network, NetworkCapabilities capabilities) {
+                revisar(listener);
             }
 
             @Override
             public void onLost(Network network) {
-                listener.onStatusChanged(false);
+                revisar(listener);
             }
         };
-
-        connectivityManager.registerNetworkCallback(request, callback);
+        connectivityManager.registerDefaultNetworkCallback(callback);
     }
 
-    /** Dejar de escuchar (llamar en onStop/onPause para no leakear). **/
+    /** Dejar de escuchar (llamar en onStop para no leakear). **/
     public void stop() {
         if (callback != null) {
-            connectivityManager.unregisterNetworkCallback(callback);
+            try {
+                connectivityManager.unregisterNetworkCallback(callback);
+            } catch (IllegalArgumentException yaDesregistrado) {
+                // Nada que hacer.
+            }
             callback = null;
         }
+    }
+
+    /** Recalcula el estado en el hilo principal y avisa solo si cambió. */
+    private void revisar(Listener listener) {
+        hiloPrincipal.post(() -> {
+            if (callback == null) {
+                return; // la pantalla ya dejó de escuchar
+            }
+            boolean ahora = isOnline(context);
+            if (ahora != ultimoEstado) {
+                ultimoEstado = ahora;
+                listener.onStatusChanged(ahora);
+            }
+        });
     }
 }

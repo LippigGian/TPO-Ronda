@@ -18,6 +18,7 @@
     <string name="home_buscar_hint">Buscar por título o descripción</string>
     <string name="home_filtros">Filtros</string>
     <string name="home_sin_resultados">No encontramos publicaciones con esos criterios.</string>
+    <string name="home_aviso_sin_conexion">Sin conexión: la información podría no estar actualizada. Para buscar, ofertar o guardar favoritos necesitás conexión.</string>
     <string name="home_aviso_offline">Sin conexión: te mostramos las últimas publicaciones guardadas. La información podría no estar actualizada.</string>
     <string name="filtros_titulo">Filtros</string>
     <string name="filtro_aplicar">Aplicar</string>
@@ -58,4 +59,12 @@
         <item>USADO</item>
     </string-array>
 
+    <!-- Punto 8: punto de entrega -->
+    <string name="entrega_titulo">Punto de entrega</string>
+    <string name="entrega_subtitulo">Tu oferta fue aceptada. Este es el lugar acordado para recibir el artículo.</string>
+    <string name="entrega_articulo">Artículo</string>
+    <string name="entrega_direccion">Dirección</string>
+    <string name="entrega_sin_direccion">Sin dirección definida</string>
+    <string name="entrega_como_llegar">Cómo llegar</string>
+    <string name="entrega_ayuda">Se abre Google Maps (o tu app de mapas) con la navegación hacia este punto. Funciona aunque no tengas conexión en la app.</string>
 </resources>

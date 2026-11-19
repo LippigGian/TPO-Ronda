@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -186,9 +187,14 @@ public class HomeActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         connectivityObserver.start(online -> {
-            // Al volver la conexión se reemplaza lo guardado por los datos más recientes del servidor.
-            if (online && mostrandoCache) {
-                runOnUiThread(this::cargarDesdeCero);
+            if (online) {
+                // Al volver la conexión se reemplaza lo guardado por los datos más recientes del servidor.
+                if (mostrandoCache) {
+                    cargarDesdeCero();
+                }
+            } else if (!mostrandoCache) {
+                // Se cortó con el listado en pantalla: se avisa que puede quedar desactualizado.
+                mostrarAvisoSinConexion();
             }
         });
     }
@@ -516,8 +522,10 @@ public class HomeActivity extends AppCompatActivity {
             mostrandoCache = true;
             ultimaPagina = true;
             paginaActual = 0;
-            adapter.reemplazar(guardado.publicaciones);
-            tvSinResultados.setVisibility(guardado.publicaciones.isEmpty() ? View.VISIBLE : View.GONE);
+            // Sin conexión, la búsqueda y los filtros se aplican sobre lo guardado.
+            List<ApiClient.PublicacionResponse> visibles = filtrarGuardadas(guardado.publicaciones);
+            adapter.reemplazar(visibles);
+            tvSinResultados.setVisibility(visibles.isEmpty() ? View.VISIBLE : View.GONE);
 
             String actualizado = guardado.timestamp > 0
                     ? " Última actualización: " + DateUtils.getRelativeTimeSpanString(guardado.timestamp) + "."
@@ -525,6 +533,37 @@ public class HomeActivity extends AppCompatActivity {
             tvAvisoOffline.setText(getString(R.string.home_aviso_offline) + actualizado);
             tvAvisoOffline.setVisibility(View.VISIBLE);
         }));
+    }
+
+    /** Búsqueda por texto, filtros (salvo cercanía) y orden por precio sobre el listado guardado. */
+    private List<ApiClient.PublicacionResponse> filtrarGuardadas(List<ApiClient.PublicacionResponse> guardadas) {
+        String buscado = texto != null ? texto.trim().toLowerCase(Locale.ROOT) : "";
+        List<ApiClient.PublicacionResponse> resultado = new ArrayList<>();
+        for (ApiClient.PublicacionResponse p : guardadas) {
+            String contenido = ((p.getTitulo() != null ? p.getTitulo() : "") + " "
+                    + (p.getDescripcion() != null ? p.getDescripcion() : "")).toLowerCase(Locale.ROOT);
+            boolean coincide = (buscado.isEmpty() || contenido.contains(buscado))
+                    && (filtros.categoria == null || filtros.categoria.equals(p.getCategoria()))
+                    && (filtros.estadoArticulo == null || filtros.estadoArticulo.equals(p.getEstadoArticulo()))
+                    && (filtros.precioMin == null || p.getPrecio() >= filtros.precioMin)
+                    && (filtros.precioMax == null || p.getPrecio() <= filtros.precioMax);
+            if (coincide) {
+                resultado.add(p);
+            }
+        }
+        if (ORDEN_PRECIO_ASC.equals(orden)) {
+            resultado.sort((a, b) -> Double.compare(a.getPrecio(), b.getPrecio()));
+        } else if (ORDEN_PRECIO_DESC.equals(orden)) {
+            resultado.sort((a, b) -> Double.compare(b.getPrecio(), a.getPrecio()));
+        }
+        return resultado;
+    }
+
+    /** Se perdió la conexión con el listado del servidor en pantalla. */
+    private void mostrarAvisoSinConexion() {
+        mostrandoCache = true;
+        tvAvisoOffline.setText(R.string.home_aviso_sin_conexion);
+        tvAvisoOffline.setVisibility(View.VISIBLE);
     }
 
     private void ocultarAvisoOffline() {
