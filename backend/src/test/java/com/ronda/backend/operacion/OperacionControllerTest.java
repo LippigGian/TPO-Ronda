@@ -47,7 +47,7 @@ class OperacionControllerTest {
     void confirmarRecepcionRequiresAuthentication() throws Exception {
         mvc.perform(post("/api/v1/operaciones/confirmar-recepcion")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"codigo\":\"RONDA-ENTREGA-2\"}"))
+                        .content("{\"publicacionId\":2}"))
                 .andExpect(status().isForbidden());
     }
 
@@ -58,33 +58,53 @@ class OperacionControllerTest {
         mvc.perform(post("/api/v1/operaciones/confirmar-recepcion")
                         .with(user("comprador@test.com"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"codigo\":\"RONDA-ENTREGA-2\"}"))
+                        .content("{\"publicacionId\":2}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.publicacionTitulo").value("Bici"))
                 .andExpect(jsonPath("$.contraparteNombre").value("comprador"));
     }
 
     @Test
-    void confirmarRecepcionRejectsEmptyCodeWithReadableMessage() throws Exception {
+    void confirmarRecepcionRejectsMissingPublicacionIdWithReadableMessage() throws Exception {
         mvc.perform(post("/api/v1/operaciones/confirmar-recepcion")
                         .with(user("comprador@test.com"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"codigo\":\"\"}"))
+                        .content("{}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").value("Código inválido: el QR está vacío"));
+                .andExpect(jsonPath("$.detail").value("Código inválido: el QR no indica la publicación"));
+    }
+
+    @Test
+    void confirmarRecepcionRejectsNonPositivePublicacionId() throws Exception {
+        mvc.perform(post("/api/v1/operaciones/confirmar-recepcion")
+                        .with(user("comprador@test.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"publicacionId\":0}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Código inválido: no es un QR de entrega de Ronda"));
+    }
+
+    @Test
+    void confirmarRecepcionRejectsNonNumericPublicacionId() throws Exception {
+        mvc.perform(post("/api/v1/operaciones/confirmar-recepcion")
+                        .with(user("comprador@test.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"publicacionId\":\"abc\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Código inválido: no es un QR de entrega de Ronda"));
     }
 
     @Test
     void confirmarRecepcionExposesBusinessErrorDetail() throws Exception {
         when(service.confirmarRecepcion(eq("comprador@test.com"), any())).thenThrow(
-                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código inválido: no es un QR de entrega de Ronda"));
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Código inválido: no corresponde a ninguna publicación"));
 
         mvc.perform(post("/api/v1/operaciones/confirmar-recepcion")
                         .with(user("comprador@test.com"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"codigo\":\"cualquier cosa\"}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").value("Código inválido: no es un QR de entrega de Ronda"));
+                        .content("{\"publicacionId\":2}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail").value("Código inválido: no corresponde a ninguna publicación"));
     }
 
     @Test

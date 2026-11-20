@@ -53,7 +53,7 @@ class CalificacionesPerfilIT {
                 .statusCode()).isEqualTo(200);
 
         var operacion = api.post("/api/v1/operaciones/confirmar-recepcion", comprador,
-                "{\"codigo\":\"RONDA-ENTREGA-" + publicacionId + "\"}");
+                "{\"publicacionId\":" + publicacionId + "}");
         assertThat(operacion.statusCode()).isEqualTo(201);
         return OfertaTestClient.idDe(operacion);
     }

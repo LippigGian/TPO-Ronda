@@ -36,15 +36,13 @@ public class OperacionService {
 
     /**
      * Cierre de la operacion con QR: el comprador escanea el QR fisico de la entrega para confirmar
-     * que recibio el articulo. Valida el codigo, registra la operacion con el precio de la oferta
+     * que recibio el articulo. La app ya parseo el JSON del QR y envia el id de la publicacion. Registra la operacion con el precio de la oferta
      * aceptada y deja la publicacion VENDIDA, todo en la misma transaccion.
      */
     @Transactional
     public OperacionDtos.HistorialItemResponse confirmarRecepcion(String email, OperacionDtos.ConfirmarRecepcionRequest request) {
         Usuario comprador = findUser(email);
-        Long publicacionId = CodigoEntrega.publicacionId(request.codigo())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Código inválido: no es un QR de entrega de Ronda"));
+        Long publicacionId = request.publicacionId();
         Publicacion publicacion = publicaciones.findById(publicacionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Código inválido: no corresponde a ninguna publicación"));

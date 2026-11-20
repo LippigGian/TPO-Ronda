@@ -16,7 +16,7 @@ public class OperacionController {
         this.service = service;
     }
 
-    /** Cierre con QR: el comprador envia el texto del QR fisico de la entrega. */
+    /** Cierre con QR: el comprador envia el id de publicacion leido del QR fisico de la entrega. */
     @PostMapping("/api/v1/operaciones/confirmar-recepcion")
     @ResponseStatus(HttpStatus.CREATED)
     public OperacionDtos.HistorialItemResponse confirmarRecepcion(
