@@ -37,8 +37,6 @@ import com.google.mlkit.vision.barcode.common.Barcode;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -47,17 +45,18 @@ import retrofit2.Response;
 /**
  * Cierre de la operación con QR: el comprador escanea el QR físico de entrega para confirmar que
  * recibió el artículo. La app no genera el QR: lo lee con la cámara (solo cámara, no desde imágenes
- * guardadas) y envía su texto al backend, que valida y cierra la operación.
+ * guardadas).
  *
- * Formato esperado del QR: "RONDA-ENTREGA-{idPublicacion}".
+ * 1. Pide permiso de cámara.
+ * 2. Inicia CameraX con un analizador de ML Kit (setImageAnalysisAnalyzer + MlKitAnalyzer).
+ * 3. ML Kit detecta el QR y devuelve el string crudo, que es un JSON serializado
+ *    (ver {@link QrEntrega}): {"tipo": "RONDA-ENTREGA", "publicacionId": 12, "titulo": "..."}.
+ * 4. La app lo parsea, valida que sea de esta publicación y envía el publicacionId al backend,
+ *    que cierra la operación.
  */
 public class ConfirmarRecepcionActivity extends AppCompatActivity {
     public static final String EXTRA_PUBLICACION_ID = "PUBLICACION_ID";
     public static final String EXTRA_TITULO = "PUBLICACION_TITULO";
-
-    /** Mismo formato que valida el backend (CodigoEntrega): se usa solo para detectar QR de otra publicación. */
-    private static final Pattern CODIGO_ENTREGA =
-            Pattern.compile("^RONDA-ENTREGA-(\\d{1,18})$", Pattern.CASE_INSENSITIVE);
 
     private long publicacionId;
     private String titulo;
@@ -174,11 +173,21 @@ public class ConfirmarRecepcionActivity extends AppCompatActivity {
         }
         procesando = true;
 
+        // El QR trae un JSON serializado: se parsea antes de hablar con el servidor.
+        QrEntrega qr;
+        try {
+            qr = QrEntrega.parsear(texto);
+        } catch (QrEntrega.QrInvalidoException error) {
+            mostrarError("Código inválido", error.getMessage()
+                    + " Escaneá el QR de entrega de «" + titulo + "».");
+            return;
+        }
+
         // Un QR de Ronda, pero de otra publicación: se avisa sin cerrar otra operación por error.
-        Matcher matcher = CODIGO_ENTREGA.matcher(texto.strip());
-        if (matcher.matches() && Long.parseLong(matcher.group(1)) != publicacionId) {
-            mostrarError("Código inválido",
-                    "Este QR corresponde a otra publicación. Escaneá el QR de entrega de «" + titulo + "».");
+        if (qr.getPublicacionId() != publicacionId) {
+            String deCual = qr.getTitulo() != null ? " («" + qr.getTitulo() + "»)" : "";
+            mostrarError("Código inválido", "Este QR corresponde a otra publicación" + deCual
+                    + ". Escaneá el QR de entrega de «" + titulo + "».");
             return;
         }
 
@@ -187,15 +196,15 @@ public class ConfirmarRecepcionActivity extends AppCompatActivity {
             return;
         }
 
-        confirmarEnServidor(texto);
+        confirmarEnServidor(qr.getPublicacionId());
     }
 
     // ---------- Backend ----------
 
-    private void confirmarEnServidor(String codigo) {
+    private void confirmarEnServidor(long idPublicacion) {
         progreso.setVisibility(View.VISIBLE);
         ApiClient.api()
-                .confirmarRecepcion(new ApiClient.ConfirmarRecepcionRequest(codigo))
+                .confirmarRecepcion(new ApiClient.ConfirmarRecepcionRequest(idPublicacion))
                 .enqueue(new Callback<ApiClient.HistorialItemResponse>() {
                     @Override
                     public void onResponse(Call<ApiClient.HistorialItemResponse> call,

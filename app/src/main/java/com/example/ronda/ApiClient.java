@@ -351,12 +351,12 @@ public final class ApiClient {
         public String getNombreUsuario() { return nombreUsuario; }
     }
 
-    /** Cierre de la operación con QR: texto leído del QR físico de entrega **/
+    /** Cierre de la operación con QR: id de publicación ya parseado del JSON del QR de entrega **/
     public static final class ConfirmarRecepcionRequest {
-        private final String codigo;
+        private final long publicacionId;
 
-        public ConfirmarRecepcionRequest(String codigo) {
-            this.codigo = codigo;
+        public ConfirmarRecepcionRequest(long publicacionId) {
+            this.publicacionId = publicacionId;
         }
     }
 
