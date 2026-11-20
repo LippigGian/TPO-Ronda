@@ -28,13 +28,16 @@ import com.example.ronda.ApiClient;
 import com.example.ronda.CalificarActivity;
 import com.example.ronda.ConnectivityObserver;
 import com.example.ronda.Formato;
+import com.example.ronda.LoginActivity;
 import com.example.ronda.R;
+import com.example.ronda.SessionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -178,21 +181,19 @@ public class ConfirmarRecepcionActivity extends AppCompatActivity {
         try {
             qr = QrEntrega.parsear(texto);
         } catch (QrEntrega.QrInvalidoException error) {
-            mostrarError("Código inválido", error.getMessage()
-                    + " Escaneá el QR de entrega de «" + titulo + "».");
+            mostrarError(ErrorRecepcion.qrInvalido());
             return;
         }
 
         // Un QR de Ronda, pero de otra publicación: se avisa sin cerrar otra operación por error.
+        // No se muestra a qué artículo pertenece: el comprador solo necesita saber que no es el correcto.
         if (qr.getPublicacionId() != publicacionId) {
-            String deCual = qr.getTitulo() != null ? " («" + qr.getTitulo() + "»)" : "";
-            mostrarError("Código inválido", "Este QR corresponde a otra publicación" + deCual
-                    + ". Escaneá el QR de entrega de «" + titulo + "».");
+            mostrarError(ErrorRecepcion.otraPublicacion(titulo));
             return;
         }
 
         if (!ConnectivityObserver.isOnline(this)) {
-            mostrarError("Sin conexión", "Necesitás conexión a internet para confirmar la recepción.");
+            mostrarError(ErrorRecepcion.sinConexion());
             return;
         }
 
@@ -214,28 +215,27 @@ public class ConfirmarRecepcionActivity extends AppCompatActivity {
                             mostrarExito(response.body());
                             return;
                         }
-                        String titulo = response.code() == 409 ? "Recepción ya confirmada" : "Código inválido";
-                        mostrarError(titulo, sinPrefijoCodigoInvalido(ApiClient.errorMessage(response,
-                                "El código escaneado no es válido para esta operación.")));
+                        mostrarError(ErrorRecepcion.desdeRespuesta(response.code(), cuerpoVacio(response)));
                     }
 
                     @Override
                     public void onFailure(Call<ApiClient.HistorialItemResponse> call, Throwable error) {
                         progreso.setVisibility(View.GONE);
-                        mostrarError("No se pudo confirmar",
-                                "No se pudo conectar con el servidor. Revisá tu conexión y probá de nuevo.");
+                        mostrarError(ErrorRecepcion.servidorInaccesible());
                     }
                 });
     }
 
-    /** "Código inválido: no es un QR..." → "No es un QR...", porque el título ya dice "Código inválido". */
-    private static String sinPrefijoCodigoInvalido(String mensaje) {
-        String prefijo = "Código inválido: ";
-        if (!mensaje.startsWith(prefijo) || mensaje.length() == prefijo.length()) {
-            return mensaje;
+    /** Sesión vencida: el backend responde 403 sin cuerpo; los 403 de negocio traen un "detail". */
+    private static boolean cuerpoVacio(Response<?> response) {
+        if (response.errorBody() == null) {
+            return true;
         }
-        String resto = mensaje.substring(prefijo.length());
-        return Character.toUpperCase(resto.charAt(0)) + resto.substring(1) + ".";
+        try {
+            return response.errorBody().string().trim().isEmpty();
+        } catch (IOException error) {
+            return true;
+        }
     }
 
     // ---------- Resultado ----------
@@ -257,19 +257,40 @@ public class ConfirmarRecepcionActivity extends AppCompatActivity {
         });
         btnSecundario.setText("Volver");
         btnSecundario.setOnClickListener(v -> finish());
+        btnSecundario.setVisibility(View.VISIBLE);
     }
 
-    private void mostrarError(String titulo, String mensaje) {
-        mostrarPanel("✕", R.color.oferta_rechazada, titulo, mensaje);
-
-        btnPrimario.setText("Escanear de nuevo");
-        btnPrimario.setOnClickListener(v -> {
-            panelResultado.setVisibility(View.GONE);
-            grupoPie.setVisibility(View.VISIBLE);
-            procesando = false;
-        });
+    private void mostrarError(ErrorRecepcion error) {
+        mostrarPanel("✕", R.color.oferta_rechazada, error.getTitulo(), error.getMensaje());
         btnSecundario.setText("Cancelar");
         btnSecundario.setOnClickListener(v -> finish());
+        btnSecundario.setVisibility(View.VISIBLE);
+
+        switch (error.getAccion()) {
+            case INICIAR_SESION:
+                btnPrimario.setText("Iniciar sesión");
+                btnPrimario.setOnClickListener(v -> {
+                    new SessionManager(this).clearToken();
+                    startActivity(new Intent(this, LoginActivity.class)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                    finish();
+                });
+                break;
+            case VOLVER:
+                // Reintentar no cambia nada: solo se ofrece volver.
+                btnPrimario.setText("Volver");
+                btnPrimario.setOnClickListener(v -> finish());
+                btnSecundario.setVisibility(View.GONE);
+                break;
+            default:
+                btnPrimario.setText("Escanear de nuevo");
+                btnPrimario.setOnClickListener(v -> {
+                    panelResultado.setVisibility(View.GONE);
+                    grupoPie.setVisibility(View.VISIBLE);
+                    procesando = false;
+                });
+                break;
+        }
     }
 
     private void mostrarPanel(String icono, @ColorRes int color, String titulo, String mensaje) {

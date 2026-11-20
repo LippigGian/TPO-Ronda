@@ -1,6 +1,7 @@
 package com.example.ronda;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import java.io.IOException;
 import retrofit2.Response;
@@ -94,8 +95,10 @@ public final class ApiClient {
             if (error.has("message")) {
                 return error.get("message").getAsString();
             }
-        } catch (IOException | IllegalStateException ignored) {
-            // Si la respuesta no contiene JSON, se muestra el mensaje de respaldo.
+        } catch (IOException | IllegalStateException | JsonParseException
+                 | UnsupportedOperationException ignored) {
+            // Si la respuesta no es JSON (por ejemplo, una página HTML de error) o "detail" no es texto,
+            // se muestra el mensaje de respaldo en lugar de cerrar la app.
         }
         return fallback;
     }
