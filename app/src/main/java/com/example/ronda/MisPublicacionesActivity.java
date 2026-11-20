@@ -15,6 +15,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.ronda.recepcion.QrEntrega;
+
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.bumptech.glide.Glide;
@@ -241,8 +243,8 @@ public class MisPublicacionesActivity extends AppCompatActivity {
 
             // Cierre con QR: la venta se confirma cuando el comprador escanea el QR físico de entrega.
             TextView codigoEntrega = new TextView(this);
-            codigoEntrega.setText("Para cerrar la venta, el comprador escanea tu QR de entrega con el texto: RONDA-ENTREGA-"
-                    + publicacion.getId());
+            codigoEntrega.setText("Para cerrar la venta, el comprador escanea tu QR de entrega, que tiene que contener: "
+                    + QrEntrega.contenido(publicacion.getId(), publicacion.getTitulo()));
             codigoEntrega.setTextColor(getColor(R.color.ronda_text_secondary));
             codigoEntrega.setTextSize(13);
             codigoEntrega.setTextIsSelectable(true);

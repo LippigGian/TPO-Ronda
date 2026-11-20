@@ -13,7 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// Se ejecuta con mvn -Pintegration verify. Cierre de la operacion escaneando el QR fisico de entrega.
+// Se ejecuta con mvn -Pintegration verify. Cierre de la operacion escaneando el QR fisico de entrega:
+// la app parsea el JSON del QR y envia el publicacionId.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ConfirmarRecepcionIT {
     private static final String CONFIRMAR = "/api/v1/operaciones/confirmar-recepcion";
@@ -36,7 +37,7 @@ class ConfirmarRecepcionIT {
     void elCompradorEscaneaElQrYLaOperacionQuedaCerradaParaAmbos() throws Exception {
         long publicacionId = publicacionConOfertaAceptada(80000);
 
-        var response = confirmar(comprador, "RONDA-ENTREGA-" + publicacionId);
+        var response = confirmar(comprador, publicacionId);
 
         assertThat(response.statusCode()).isEqualTo(201);
         assertThat(response.body()).contains("\"tipo\":\"COMPRA\"", "\"publicacionId\":" + publicacionId,
@@ -58,25 +59,25 @@ class ConfirmarRecepcionIT {
     @Test
     void escanearDosVecesElMismoQrAvisaQueYaEstaConfirmada() throws Exception {
         long publicacionId = publicacionConOfertaAceptada(80000);
-        assertThat(confirmar(comprador, "RONDA-ENTREGA-" + publicacionId).statusCode()).isEqualTo(201);
+        assertThat(confirmar(comprador, publicacionId).statusCode()).isEqualTo(201);
 
-        var response = confirmar(comprador, "RONDA-ENTREGA-" + publicacionId);
+        var response = confirmar(comprador, publicacionId);
 
         assertThat(response.statusCode()).isEqualTo(409);
         assertThat(response.body()).contains("Ya confirmaste la recepción");
     }
 
     @Test
-    void unQrQueNoEsDeRondaEsInvalido() throws Exception {
-        var response = confirmar(comprador, "https://www.ejemplo.com");
+    void unPedidoSinPublicacionEsInvalido() throws Exception {
+        var response = api.post(CONFIRMAR, comprador, "{}");
 
         assertThat(response.statusCode()).isEqualTo(400);
-        assertThat(response.body()).contains("no es un QR de entrega de Ronda");
+        assertThat(response.body()).contains("el QR no indica la publicación");
     }
 
     @Test
     void unQrDeUnaPublicacionInexistenteEsInvalido() throws Exception {
-        var response = confirmar(comprador, "RONDA-ENTREGA-999999999");
+        var response = confirmar(comprador, 999999999L);
 
         assertThat(response.statusCode()).isEqualTo(404);
         assertThat(response.body()).contains("no corresponde a ninguna publicación");
@@ -87,7 +88,7 @@ class ConfirmarRecepcionIT {
         long publicacionId = api.crearPublicacion(vendedor, 100000);
         assertThat(api.ofertar(comprador, publicacionId, 80000).statusCode()).isEqualTo(201);
 
-        var response = confirmar(comprador, "RONDA-ENTREGA-" + publicacionId);
+        var response = confirmar(comprador, publicacionId);
 
         assertThat(response.statusCode()).isEqualTo(403);
         assertThat(response.body()).contains("no corresponde a una compra tuya");
@@ -99,7 +100,7 @@ class ConfirmarRecepcionIT {
     void elVendedorNoPuedeConfirmarSuPropiaVenta() throws Exception {
         long publicacionId = publicacionConOfertaAceptada(80000);
 
-        var response = confirmar(vendedor, "RONDA-ENTREGA-" + publicacionId);
+        var response = confirmar(vendedor, publicacionId);
 
         assertThat(response.statusCode()).isEqualTo(403);
     }
@@ -119,7 +120,7 @@ class ConfirmarRecepcionIT {
     void requiereSesion() throws Exception {
         var response = send(HttpRequest.newBuilder(uri(CONFIRMAR))
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString("{\"codigo\":\"RONDA-ENTREGA-1\"}")));
+                .POST(HttpRequest.BodyPublishers.ofString("{\"publicacionId\":1}")));
 
         assertThat(response.statusCode()).isEqualTo(403);
     }
@@ -133,8 +134,8 @@ class ConfirmarRecepcionIT {
         return publicacionId;
     }
 
-    private HttpResponse<String> confirmar(String token, String codigo) throws Exception {
-        return api.post(CONFIRMAR, token, "{\"codigo\":\"" + codigo + "\"}");
+    private HttpResponse<String> confirmar(String token, long publicacionId) throws Exception {
+        return api.post(CONFIRMAR, token, "{\"publicacionId\":" + publicacionId + "}");
     }
 
     private HttpResponse<String> patchEstado(String token, long publicacionId, String estado) throws Exception {

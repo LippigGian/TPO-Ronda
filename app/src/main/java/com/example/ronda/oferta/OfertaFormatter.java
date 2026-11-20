@@ -2,6 +2,7 @@ package com.example.ronda.oferta;
 
 import com.example.ronda.Formato;
 import com.example.ronda.R;
+import com.example.ronda.recepcion.QrEntrega;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -71,7 +72,8 @@ public final class OfertaFormatter {
                         ? "¡Trato cerrado! Ya podés ver el punto de entrega. Cuando recibas el artículo, "
                                 + "escaneá el QR del vendedor."
                         : "Trato cerrado. La venta se confirma cuando el comprador escanee tu QR de entrega "
-                                + "con el texto RONDA-ENTREGA-" + oferta.getPublicacion().getId() + ".";
+                                + "con el contenido " + QrEntrega.contenido(oferta.getPublicacion().getId(),
+                                        oferta.getPublicacion().getTitulo()) + ".";
             case OfertaModels.RECHAZADA:
                 return "La negociación terminó sin acuerdo.";
             case OfertaModels.VENCIDA:

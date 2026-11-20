@@ -3,6 +3,7 @@ package com.ronda.backend.operacion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -32,5 +33,12 @@ public class OperacionErrorHandler {
                 .orElse("Datos inválidos");
         return ResponseEntity.badRequest()
                 .body(ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detalle));
+    }
+
+    /** Cuerpo que no es JSON valido o con tipos incorrectos, por ejemplo "publicacionId": "abc". */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ProblemDetail> cuerpoIlegible(HttpMessageNotReadableException error) {
+        return ResponseEntity.badRequest().body(ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Código inválido: no es un QR de entrega de Ronda"));
     }
 }
