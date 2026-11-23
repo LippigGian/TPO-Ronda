@@ -67,4 +67,20 @@
     <string name="entrega_sin_direccion">Sin dirección definida</string>
     <string name="entrega_como_llegar">Cómo llegar</string>
     <string name="entrega_ayuda">Se abre Google Maps (o tu app de mapas) con la navegación hacia este punto. Funciona aunque no tengas conexión en la app.</string>
+    <!-- Punto 4: preguntas y respuestas -->
+    <string name="preguntas_titulo">Preguntas</string>
+    <string name="preguntas_cargando">Cargando preguntas…</string>
+    <string name="preguntas_vacio">Todavía no hay preguntas.</string>
+    <string name="preguntas_error">No se pudieron cargar las preguntas.</string>
+    <string name="preguntas_sin_conexion">Necesitás conexión para ver las preguntas.</string>
+    <string name="preguntas_dialogo_preguntar">Preguntarle al vendedor</string>
+    <string name="preguntas_hint_pregunta">El vendedor recibe un aviso y la respuesta queda visible para todos.</string>
+    <string name="preguntas_dialogo_responder">Responder pregunta</string>
+    <string name="preguntas_enviar">Enviar</string>
+    <string name="preguntas_responder">Responder</string>
+    <string name="preguntas_enviada">Pregunta enviada. Te avisamos cuando el vendedor responda.</string>
+    <string name="preguntas_respondida">Respuesta enviada</string>
+    <string name="preguntas_vos">Vos</string>
+    <string name="preguntas_sin_respuesta">Esperando respuesta del vendedor</string>
+    <string name="preguntas_respuesta_prefijo">↳ %1$s</string>
 </resources>
