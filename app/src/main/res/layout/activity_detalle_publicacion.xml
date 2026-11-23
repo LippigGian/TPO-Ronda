@@ -322,6 +322,46 @@
                     android:textSize="16sp"
                     android:visibility="gone"
                     app:cornerRadius="14dp" />
+
+                <!-- Punto 4: preguntas y respuestas -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardBackgroundColor="@color/ronda_surface"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/preguntas_titulo"
+                            android:textColor="@color/ronda_text_primary"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvEstadoPreguntas"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/preguntas_cargando"
+                            android:textColor="@color/ronda_text_secondary"
+                            android:textSize="14sp" />
+
+                        <LinearLayout
+                            android:id="@+id/contenedorPreguntas"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

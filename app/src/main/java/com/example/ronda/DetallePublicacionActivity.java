@@ -19,6 +19,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.button.MaterialButton;
 import com.example.ronda.favorito.FavoritoAcciones;
+import com.example.ronda.pregunta.PreguntasSeccion;
 import com.example.ronda.favorito.FavoritoApi;
 import com.example.ronda.oferta.OfertaAcciones;
 import com.example.ronda.perfil.PerfilPublicoActivity;
@@ -56,6 +57,7 @@ public class DetallePublicacionActivity extends AppCompatActivity {
     private TextView tvRequiereConexion;
     private MaterialButton btnOfertar;
     private MaterialButton btnPreguntar;
+    private PreguntasSeccion preguntas;
     private MaterialButton btnGuardar;
     private boolean esFavorito;
 
@@ -86,6 +88,7 @@ public class DetallePublicacionActivity extends AppCompatActivity {
         tvRequiereConexion = findViewById(R.id.tvRequiereConexion);
         btnOfertar = findViewById(R.id.btnOfertar);
         btnPreguntar = findViewById(R.id.btnPreguntar);
+        preguntas = new PreguntasSeccion(this);
         btnGuardar = findViewById(R.id.btnGuardar);
 
         cargar();
@@ -186,6 +189,7 @@ public class DetallePublicacionActivity extends AppCompatActivity {
         mostrarDireccion(p);
         mostrarAcciones(p, online);
         aplicarConexion(online);
+        preguntas.cargar(p.getId());
     }
 
     /**
@@ -281,7 +285,8 @@ public class DetallePublicacionActivity extends AppCompatActivity {
 
         // Cada acción se conecta con su módulo: ofertas (punto 7) y favoritos (punto 10).
         btnOfertar.setOnClickListener(v -> OfertaAcciones.ofertar(this, p.getId(), p.getPrecio()));
-        btnPreguntar.setOnClickListener(v -> proximamente("Las preguntas"));
+        // Punto 4: preguntas al vendedor (con aviso del punto 11).
+        btnPreguntar.setOnClickListener(v -> preguntas.preguntar());
         cargarEstadoFavorito(p.getId());
     }
 
